@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: flayer-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: flayer
+      POSTGRES_PASSWORD: flayer
+      POSTGRES_DB: flayer
+    ports:
+      - "5433:5432"
+    volumes:
+      - flayer_pgdata:/var/lib/postgresql/data
+
+volumes:
+  flayer_pgdata:

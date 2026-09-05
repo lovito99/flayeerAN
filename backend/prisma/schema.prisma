@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id        String   @id @default(cuid())
+  name      String
+  format    String   @default("tiktok")
+  mode      String   @default("minimal")
+  width     Int      @default(1080)
+  height    Int      @default(1920)
+  config    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  assets    Asset[]
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  kind      String
+  filename  String
+  mimeType  String
+  url       String
+  width     Int?
+  height    Int?
+  duration  Float?
+  createdAt DateTime @default(now())
+}
