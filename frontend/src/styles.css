@@ -36,3 +36,40 @@
 .mark-badge strong { font:800 9px 'DM Mono',monospace; letter-spacing:.4px; text-transform:uppercase; color:#fff; }
 .mark-badge em { font:700 7px 'DM Mono',monospace; letter-spacing:.4px; text-transform:uppercase; font-style:normal; color:#fff; opacity:.9; }
 @media (max-width: 680px) { .campaign-strip { padding-left:10px; padding-right:10px; }.campaign-strip h2 { font-size:19px; } }
+
+/* Proportions follow the canvas width, including small previews and print. */
+.editor-fields { display:contents; border:0; margin:0; padding:0; min-width:0; }
+.shell { grid-template-rows:auto 1fr auto; }.topbar { min-height:68px; }
+.alert { padding:12px 24px; background:#fff0ed; color:#922d20; display:flex; justify-content:space-between; gap:16px; }
+.alert button,.save-button { border:1px solid #d9d8d0; border-radius:5px; background:#fffdf8; padding:8px 12px; }
+button:disabled { opacity:.6; cursor:wait; }
+button:focus-visible,[role="button"]:focus-visible { outline:2px solid #e45a3b; outline-offset:3px; }
+.format-card { width:100%; text-align:left; background:transparent; }
+.swatch { padding:0; width:32px; height:28px; }
+.campaign-poster { container-type:inline-size; width:min(390px,100%); }
+.campaign-strip { grid-template-columns:1fr 1fr; gap:3cqw; padding:4cqw; align-items:start; }
+.campaign-strip h2.name-first { font-size:8cqw; line-height:1; letter-spacing:-.25cqw; overflow-wrap:anywhere; }
+.name-rest { font-size:4.4cqw; line-height:1.1; overflow-wrap:anywhere; }
+.name-prefix { font-size:2.7cqw; }
+.pill { font-size:2.4cqw; padding:1cqw 2cqw; margin-bottom:1.5cqw; }
+.campaign-slogan { font-size:4cqw; line-height:1.15; overflow-wrap:anywhere; }
+.campaign-tagline { font-size:4.5cqw; line-height:1.2; overflow-wrap:anywhere; }
+.campaign-cascos { grid-column:1/-1; display:grid; grid-template-columns:25% 1fr; align-items:center; gap:2cqw; width:100%; border-top:1px solid #ffffff55; padding-top:2cqw; }
+.campaign-cascos .pill { font-size:2.2cqw; margin:0; padding:1cqw 2cqw; }
+.cascos-row { gap:2cqw; }.casco .casco-tile { width:7cqw; height:7cqw; }
+.casco span { font-size:1.65cqw; line-height:1.25; overflow-wrap:normal; word-break:normal; }
+.mark-badge { top:4cqw; right:4cqw; max-width:35%; padding:2cqw; border-width:.7cqw; border-radius:3cqw; gap:1cqw; text-align:center; overflow-wrap:anywhere; }
+.mark-badge .casco-tile { width:10cqw; height:10cqw; }
+.mark-badge strong { font-size:2.7cqw; }.mark-badge em { font-size:2.3cqw; }
+.campaign-poster > img,.campaign-poster > video { object-position:var(--position,50%) center; }
+.media-video > video { height:64%; object-fit:contain; background:#17211e; }
+.media-video .campaign-strip { min-height:36%; }
+.media-video .mark-badge { top:3cqw; left:3cqw; right:auto; }
+.campaign-poster.optimized .campaign-strip { padding:5cqw; gap:4cqw; }
+.campaign-poster.optimized .campaign-name { grid-column:1/-1; }
+.campaign-poster.optimized .campaign-center { grid-column:1/-1; }
+.campaign-poster.optimized.media-video > video { height:52%; }
+.campaign-poster.optimized.media-video .campaign-strip { min-height:48%; }
+.asset-name { font-size:12px; overflow-wrap:anywhere; }.media-settings { margin-top:18px; }
+@media(max-width:680px) { .left-panel .control-group { display:block; }.canvas-area { min-height:0; }.top-actions { gap:6px; }.icon-button { display:none; } }
+@media print { @page { size:108mm 192mm; margin:0; } .alert { display:none; }.campaign-poster { width:108mm; height:192mm; break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }.canvas-area { min-height:0; } }

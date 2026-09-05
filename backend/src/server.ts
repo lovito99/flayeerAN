@@ -6,7 +6,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import sharp from 'sharp';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -21,12 +21,12 @@ app.use('/uploads', express.static(uploadDir));
 const upload = multer({
   storage: multer.diskStorage({
     destination: uploadDir,
-    filename: (_req, file, callback) => callback(null, `${randomUUID()}${path.extname(file.originalname)}`)
+    filename: (_req, file, callback) => callback(null, `${randomUUID()}${({ 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'video/mp4': '.mp4', 'video/webm': '.webm' } as Record<string, string>)[file.mimetype] || '.bin'}`)
   }),
   limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (_req, file, callback) => {
-    const accepted = file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/');
-    if (!accepted) return callback(new Error('Solo se permiten imagenes o videos'));
+    const accepted = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm'].includes(file.mimetype);
+    if (!accepted) return callback(new HttpError(415, 'Usa JPG, PNG, WebP, MP4 o WebM'));
     callback(null, true);
   }
 });
@@ -38,29 +38,55 @@ app.get('/api/projects', async (_req, res) => {
   res.json(projects);
 });
 
+class HttpError extends Error {
+  constructor(public status: number, message: string) { super(message); }
+}
+
+function projectData(body: unknown) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'Datos de proyecto inválidos');
+  const input = body as Record<string, unknown>;
+  const allowed = ['name', 'format', 'mode', 'width', 'height', 'config'];
+  if (Object.keys(input).some(key => !allowed.includes(key))) throw new HttpError(400, 'Campo de proyecto no permitido');
+  if (input.name !== undefined && (typeof input.name !== 'string' || !input.name.trim() || input.name.length > 200)) throw new HttpError(400, 'El nombre debe tener entre 1 y 200 caracteres');
+  if (input.format !== undefined && !['tiktok', 'story'].includes(String(input.format))) throw new HttpError(400, 'Formato inválido');
+  if (input.mode !== undefined && !['minimal', 'optimized'].includes(String(input.mode))) throw new HttpError(400, 'Estilo inválido');
+  for (const key of ['width', 'height']) {
+    if (input[key] !== undefined && (!Number.isInteger(input[key]) || Number(input[key]) < 1 || Number(input[key]) > 4096)) throw new HttpError(400, 'Dimensiones inválidas');
+  }
+  if (input.config !== undefined && (!input.config || typeof input.config !== 'object' || Array.isArray(input.config))) throw new HttpError(400, 'Configuración inválida');
+  return input as { name?: string; format?: string; mode?: string; width?: number; height?: number; config?: Prisma.InputJsonObject };
+}
+
+app.get('/api/projects/:id', async (req, res) => {
+  const project = await prisma.project.findUnique({ where: { id: String(req.params.id) }, include: { assets: { orderBy: { createdAt: 'asc' } } } });
+  if (!project) throw new HttpError(404, 'Proyecto no encontrado');
+  res.json(project);
+});
+
 app.post('/api/projects', async (req, res) => {
-  const project = await prisma.project.create({
-    data: {
-      name: req.body.name || 'Nuevo flyer',
-      format: req.body.format || 'tiktok',
-      mode: req.body.mode || 'minimal',
-      width: req.body.width || 1080,
-      height: req.body.height || 1920,
-      config: req.body.config || {}
-    }
-  });
+  const data = projectData(req.body);
+  const project = await prisma.project.create({ data: { ...data, name: data.name ?? 'Nuevo flyer', config: data.config ?? {} } });
   res.status(201).json(project);
 });
 
 app.patch('/api/projects/:id', async (req, res) => {
-  const project = await prisma.project.update({ where: { id: req.params.id }, data: req.body });
+  const project = await prisma.project.update({ where: { id: String(req.params.id) }, data: projectData(req.body) });
   res.json(project);
 });
 
-app.post('/api/projects/:id/assets', upload.single('file'), async (req, res) => {
+app.post('/api/projects/:id/assets', async (req, _res, next) => {
+  const project = await prisma.project.findUnique({ where: { id: String(req.params.id) }, select: { id: true } });
+  if (!project) throw new HttpError(404, 'Proyecto no encontrado');
+  next();
+}, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Falta el archivo' });
+  try {
   const isImage = req.file.mimetype.startsWith('image/');
-  const metadata = isImage ? await sharp(req.file.path).metadata() : { width: undefined, height: undefined };
+  let metadata: { width?: number; height?: number } = {};
+  if (isImage) {
+    try { metadata = await sharp(req.file.path, { limitInputPixels: 40000000 }).metadata(); }
+    catch { throw new HttpError(422, 'Imagen dañada o demasiado grande'); }
+  }
   const asset = await prisma.asset.create({
     data: {
       projectId: String(req.params.id),
@@ -73,10 +99,19 @@ app.post('/api/projects/:id/assets', upload.single('file'), async (req, res) => 
     }
   });
   res.status(201).json(asset);
+  } catch (error) {
+    await fs.unlink(req.file.path).catch(() => undefined);
+    throw error;
+  }
 });
 
 app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  res.status(400).json({ error: error.message });
+  if (error instanceof multer.MulterError) { res.status(error.code === 'LIMIT_FILE_SIZE' ? 413 : 400).json({ error: error.code === 'LIMIT_FILE_SIZE' ? 'El archivo supera los 100 MB' : 'Carga de archivo inválida' }); return; }
+  if (error instanceof HttpError) { res.status(error.status).json({ error: error.message }); return; }
+  if (error instanceof Prisma.PrismaClientKnownRequestError && ['P2025', 'P2003'].includes(error.code)) { res.status(404).json({ error: 'Proyecto no encontrado' }); return; }
+  if (error instanceof SyntaxError) { res.status(400).json({ error: 'JSON inválido' }); return; }
+  console.error('API error:', error);
+  res.status(500).json({ error: 'No se pudo completar la operación. Verifica la conexión del servidor.' });
 });
 
 const server = app.listen(port);
