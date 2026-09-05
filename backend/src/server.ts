@@ -48,12 +48,18 @@ function projectData(body: unknown) {
   const allowed = ['name', 'format', 'mode', 'width', 'height', 'config'];
   if (Object.keys(input).some(key => !allowed.includes(key))) throw new HttpError(400, 'Campo de proyecto no permitido');
   if (input.name !== undefined && (typeof input.name !== 'string' || !input.name.trim() || input.name.length > 200)) throw new HttpError(400, 'El nombre debe tener entre 1 y 200 caracteres');
-  if (input.format !== undefined && !['tiktok', 'story'].includes(String(input.format))) throw new HttpError(400, 'Formato inválido');
+  if (input.format !== undefined && !['facebook', 'tiktok', 'story'].includes(String(input.format))) throw new HttpError(400, 'Formato inválido');
   if (input.mode !== undefined && !['minimal', 'optimized'].includes(String(input.mode))) throw new HttpError(400, 'Estilo inválido');
   for (const key of ['width', 'height']) {
     if (input[key] !== undefined && (!Number.isInteger(input[key]) || Number(input[key]) < 1 || Number(input[key]) > 4096)) throw new HttpError(400, 'Dimensiones inválidas');
   }
   if (input.config !== undefined && (!input.config || typeof input.config !== 'object' || Array.isArray(input.config))) throw new HttpError(400, 'Configuración inválida');
+  if (input.format !== undefined) {
+    const height = input.format === 'facebook' ? 1350 : 1920;
+    if ((input.width !== undefined && input.width !== 1080) || (input.height !== undefined && input.height !== height)) throw new HttpError(400, 'Dimensiones incompatibles con la plantilla');
+    input.width = 1080;
+    input.height = height;
+  }
   return input as { name?: string; format?: string; mode?: string; width?: number; height?: number; config?: Prisma.InputJsonObject };
 }
 
@@ -64,24 +70,30 @@ app.get('/api/projects/:id', async (req, res) => {
 });
 
 app.post('/api/projects', async (req, res) => {
-  const data = projectData(req.body);
+  const data = projectData({ format: 'tiktok', ...req.body });
   const project = await prisma.project.create({ data: { ...data, name: data.name ?? 'Nuevo flyer', config: data.config ?? {} } });
   res.status(201).json(project);
 });
 
 app.patch('/api/projects/:id', async (req, res) => {
-  const project = await prisma.project.update({ where: { id: String(req.params.id) }, data: projectData(req.body) });
+  const data = projectData(req.body);
+  const existing = await prisma.project.findUnique({ where: { id: String(req.params.id) } });
+  if (!existing) throw new HttpError(404, 'Proyecto no encontrado');
+  if (data.format !== undefined && data.format !== existing.format) throw new HttpError(409, 'Crea un proyecto separado para otra plantilla');
+  const project = await prisma.project.update({ where: { id: existing.id }, data: projectData({ ...data, format: existing.format }) });
   res.json(project);
 });
 
 app.post('/api/projects/:id/assets', async (req, _res, next) => {
-  const project = await prisma.project.findUnique({ where: { id: String(req.params.id) }, select: { id: true } });
+  const project = await prisma.project.findUnique({ where: { id: String(req.params.id) }, select: { id: true, format: true } });
   if (!project) throw new HttpError(404, 'Proyecto no encontrado');
+  _res.locals.projectFormat = project.format;
   next();
 }, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Falta el archivo' });
   try {
   const isImage = req.file.mimetype.startsWith('image/');
+  if ((res.locals.projectFormat === 'facebook' && !isImage) || (res.locals.projectFormat === 'tiktok' && isImage)) throw new HttpError(415, 'Facebook admite imagenes y TikTok admite videos');
   let metadata: { width?: number; height?: number } = {};
   if (isImage) {
     try { metadata = await sharp(req.file.path, { limitInputPixels: 40000000 }).metadata(); }

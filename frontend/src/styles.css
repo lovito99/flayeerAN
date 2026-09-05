@@ -8,7 +8,7 @@
 .panel-title { display:flex;align-items:center;justify-content:space-between;margin-bottom:27px; }.panel-title h2 { font-size:17px;letter-spacing:-.5px;margin:0; }.count { color:#a1a59e;font:10px 'DM Mono',monospace; }.input-group { margin-bottom:18px; }.input-group input,.input-group textarea { width:100%;resize:vertical;border:1px solid #d9d8d0;background:#fbfaf5;padding:10px 11px;border-radius:4px;color:#39443f;font-size:12px;outline:none; }.input-group input:focus,.input-group textarea:focus { border-color:#e45a3b; }.asset-drop { border:1px dashed #c6c7bf;padding:18px 8px;text-align:center;display:grid;justify-items:center;gap:7px;color:#78817a;cursor:pointer;background:#f7f6f0; }.asset-drop strong { color:#4c5b54;font-size:12px; }.asset-drop span { color:#a1a59e;font:10px 'DM Mono',monospace; }.upload-icon { display:grid;place-items:center;width:34px;height:34px;background:#ecebe4;color:#e45a3b;border-radius:50%; }.layer-list { margin-top:23px;border-top:1px solid #dad9d2; }.layer { display:flex;align-items:center;gap:8px;border-bottom:1px solid #dad9d2;padding:13px 0;color:#69736d;font-size:11px; }.layer-grip { color:#afb2aa;letter-spacing:-3px; }.layer .eye { margin-left:auto;color:#9da39c;font-size:10px; }.type-icon { width:16px;height:16px;display:grid;place-items:center;font-weight:700;font-size:11px;color:#e45a3b;border:1px solid #e45a3b;border-radius:3px; }.add-layer { border:0;background:transparent;color:#e45a3b;display:flex;align-items:center;gap:6px;font-size:11px;padding:13px 0; }.footer { padding:0 32px;display:flex;align-items:center;justify-content:space-between;color:#999d96;font:10px 'DM Mono',monospace;border-top:1px solid #d9d8d1; }.footer-mark { color:#e45a3b;font-size:14px; }
 @media (max-width: 960px) { .workspace { grid-template-columns:220px minmax(320px,1fr); }.right-panel { grid-column:1/-1;border-left:0;border-top:1px solid #d9d8d1;display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:24px 28px; }.right-panel .eyebrow,.right-panel .panel-title { grid-column:1/-1; }.layer-list,.add-layer { display:none; } }
 @media (max-width: 680px) { .shell { display:block; }.topbar { padding:0 16px;height:60px; }.saved { display:none; }.workspace { display:block; }.left-panel { border-right:0;padding:26px 20px 20px; }.left-panel h1 { font-size:32px; }.intro { margin-bottom:22px; }.left-panel .control-group { display:none; }.canvas-area { min-height:650px;padding:25px 15px; }.poster { width:min(340px, 86vw); }.right-panel { display:block;padding:25px 20px; }.right-panel .eyebrow { margin-bottom:18px; }.footer { padding:12px 16px; }.footer span:last-child { display:none; } }
-@media print { .topbar,.sidebar,.canvas-head,.footer { display:none; }.shell,.workspace,.canvas-area { display:block;background:#fff; }.canvas-area { padding:0; }.poster { width:1080px;height:1920px;box-shadow:none; } }
+
 .campaign-poster { background:#eee; }
 .campaign-poster > img,.campaign-poster > video { position:absolute; inset:0; height:100%; object-fit:cover; object-position:center top; }
 .campaign-poster .poster-placeholder { position:absolute; inset:0; height:100%; }
@@ -37,7 +37,7 @@
 .mark-badge em { font:700 7px 'DM Mono',monospace; letter-spacing:.4px; text-transform:uppercase; font-style:normal; color:#fff; opacity:.9; }
 @media (max-width: 680px) { .campaign-strip { padding-left:10px; padding-right:10px; }.campaign-strip h2 { font-size:19px; } }
 
-/* Proportions follow the canvas width, including small previews and print. */
+/* Proportions follow the canvas width, including small previews and PNG exports. */
 .editor-fields { display:contents; border:0; margin:0; padding:0; min-width:0; }
 .shell { grid-template-rows:auto 1fr auto; }.topbar { min-height:68px; }
 .alert { padding:12px 24px; background:#fff0ed; color:#922d20; display:flex; justify-content:space-between; gap:16px; }
@@ -72,4 +72,37 @@ button:focus-visible,[role="button"]:focus-visible { outline:2px solid #e45a3b; 
 .campaign-poster.optimized.media-video .campaign-strip { min-height:48%; }
 .asset-name { font-size:12px; overflow-wrap:anywhere; }.media-settings { margin-top:18px; }
 @media(max-width:680px) { .left-panel .control-group { display:block; }.canvas-area { min-height:0; }.top-actions { gap:6px; }.icon-button { display:none; } }
-@media print { @page { size:108mm 192mm; margin:0; } .alert { display:none; }.campaign-poster { width:108mm; height:192mm; break-inside:avoid; print-color-adjust:exact; -webkit-print-color-adjust:exact; }.canvas-area { min-height:0; } }
+
+
+/* Each template owns its canvas proportions and layout. */
+.campaign-poster.template-facebook { aspect-ratio:4/5; }
+.campaign-poster.template-tiktok { aspect-ratio:9/16; }
+.template-facebook .campaign-strip { padding:3cqw; gap:2cqw; }
+.template-facebook .campaign-strip h2.name-first { font-size:7cqw; }
+.template-facebook .campaign-slogan { font-size:3.6cqw; }
+.template-facebook.optimized .campaign-name,.template-facebook.optimized .campaign-center { grid-column:auto; }
+.template-facebook.optimized .campaign-strip { padding:4cqw; gap:3cqw; }
+.template-facebook .mark-badge { top:3cqw; right:3cqw; }
+
+
+/* Image composition: a clear photo area and a compact information strip. */
+.template-facebook { display:flex; flex-direction:column; }
+.template-facebook .image-frame { position:relative; flex:1; min-height:0; overflow:hidden; touch-action:none; cursor:grab; user-select:none; }
+.template-facebook .image-frame:active { cursor:grabbing; }
+.template-facebook .image-frame:focus-visible { outline:2px solid #fff; outline-offset:-3px; }
+.template-facebook .image-frame img { position:absolute; max-width:none; object-fit:fill; pointer-events:none; }
+.template-facebook .poster-placeholder { position:relative; flex:1; min-height:0; height:auto; }
+.template-facebook .campaign-strip { position:relative; flex-shrink:0; padding:4cqw; gap:3cqw; }
+.template-facebook .mark-badge { pointer-events:none; border-radius:1.5cqw; box-shadow:none; border-width:.5cqw; padding:1.8cqw 2.2cqw; }
+.template-facebook .mark-badge .casco-tile { width:8cqw; height:8cqw; }
+.template-facebook .pill { border-radius:1cqw; font-family:'Space Grotesk',sans-serif; letter-spacing:0; }
+.template-facebook .campaign-tagline { font-family:'Space Grotesk',sans-serif; font-size:3.3cqw; font-weight:500; line-height:1.35; }
+.template-facebook .campaign-cascos { grid-template-columns:23% 1fr; padding-top:2.5cqw; }
+.template-facebook .campaign-cascos .pill { color:#fff; background:transparent; padding:0; font-size:2.4cqw; }
+.template-facebook .casco span { font-family:'Space Grotesk',sans-serif; font-size:1.9cqw; letter-spacing:0; }
+.crop-hint { font-size:12px; color:#69736d; line-height:1.5; }
+.media-settings input[type="range"] { padding:0; margin:0 0 16px; accent-color:#263733; cursor:pointer; }
+.reset-crop { border:1px solid #d9d8d0; border-radius:4px; background:transparent; padding:8px 10px; color:#39443f; font-size:12px; }
+.template-facebook.optimized .campaign-strip { gap:4cqw; padding:5cqw; }
+.canvas-area { justify-content:flex-start; padding-top:40px; }
+.campaign-poster { box-shadow:0 8px 24px #303b3517; }
