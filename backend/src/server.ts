@@ -49,7 +49,7 @@ function projectData(body: unknown) {
   if (Object.keys(input).some(key => !allowed.includes(key))) throw new HttpError(400, 'Campo de proyecto no permitido');
   if (input.name !== undefined && (typeof input.name !== 'string' || !input.name.trim() || input.name.length > 200)) throw new HttpError(400, 'El nombre debe tener entre 1 y 200 caracteres');
   if (input.format !== undefined && !['facebook', 'tiktok', 'story'].includes(String(input.format))) throw new HttpError(400, 'Formato inválido');
-  if (input.mode !== undefined && !['minimal', 'optimized'].includes(String(input.mode))) throw new HttpError(400, 'Estilo inválido');
+  if (input.mode !== undefined && !['minimal', 'optimized', 'diagonal', 'editorial', 'soft'].includes(String(input.mode))) throw new HttpError(400, 'Estilo inválido');
   for (const key of ['width', 'height']) {
     if (input[key] !== undefined && (!Number.isInteger(input[key]) || Number(input[key]) < 1 || Number(input[key]) > 4096)) throw new HttpError(400, 'Dimensiones inválidas');
   }

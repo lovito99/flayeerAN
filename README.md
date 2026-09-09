@@ -1,4 +1,4 @@
-# Flayer Studio
+# Creador de Flyers · Ahora Nación
 
 Editor web para crear flyers verticales optimizados para TikTok e historias sociales.
 
@@ -30,6 +30,8 @@ npm run build
 npm start
 ```
 
+Los comandos `npm run build` y `npm run dev` del backend generan automaticamente el cliente de Prisma antes de ejecutarse. Esto evita errores de tipos al compilar despues de instalar las dependencias o modificar `backend/prisma/schema.prisma`. La generacion no modifica la base de datos; para sincronizarla usa `npm run db:push`.
+
 Debe aparecer `Flayer API running on http://localhost:4000`. Si el puerto queda ocupado, libera la instancia anterior con:
 
 ```powershell
@@ -41,7 +43,7 @@ Stop-Process -Id $backendProcessId -Force
 
 - Plantilla de imagen para Facebook: 1080 x 1350 (4:5).
 - Plantilla de video para TikTok: 1080 x 1920 (9:16).
-- Modos `Minimal` y `Optimizada`.
+- Estilos de Facebook: `Minimal` y `Optimizada` con borde suave, `Diagonal`, `Editorial` con fondo claro y `Tarjeta` con bordes redondeados. TikTok mantiene `Minimal` y `Optimizada`.
 - Edicion de titular, descripcion y color de acento.
 - Carga de imagenes JPG/PNG y videos MP4 de hasta 100 MB.
 - Persistencia de proyectos y metadatos con PostgreSQL y Prisma.

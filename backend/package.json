@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "npm run db:generate",
     "dev": "tsx watch src/server.ts",
+    "prebuild": "npm run db:generate",
     "build": "tsc",
     "start": "node dist/server.js",
     "db:generate": "prisma generate",

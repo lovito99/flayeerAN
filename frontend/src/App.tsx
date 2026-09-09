@@ -10,7 +10,14 @@ const TEMPLATES = {
   facebook: { label: 'Imagen para Facebook', kind: 'image', width: 1080, height: 1350, ratio: '4:5', accept: 'image/jpeg,image/png,image/webp', files: 'JPG, PNG o WebP' },
   tiktok: { label: 'Video para TikTok', kind: 'video', width: 1080, height: 1920, ratio: '9:16', accept: 'video/mp4,video/webm', files: 'MP4 o WebM' }
 } as const;
-type Mode = 'minimal' | 'optimized';
+type Mode = 'minimal' | 'optimized' | 'diagonal' | 'editorial' | 'soft';
+const STYLES: { value: Mode; label: string; description: string; facebookOnly?: boolean }[] = [
+  { value: 'minimal', label: 'Minimal', description: 'Color con un borde suave' },
+  { value: 'diagonal', label: 'Diagonal', description: 'Un corte ligero y dinámico', facebookOnly: true },
+  { value: 'editorial', label: 'Editorial', description: 'Fondo claro y acentos de color', facebookOnly: true },
+  { value: 'soft', label: 'Tarjeta', description: 'Bordes redondos y más aire', facebookOnly: true },
+  { value: 'optimized', label: 'Optimizada', description: 'Mayor espacio para el contenido' }
+];
 type Asset = { url: string; kind: 'image' | 'video'; filename: string };
 
 function App() {
@@ -121,7 +128,7 @@ function App() {
 
   return <main className="shell" onChange={() => setNotice('Cambios sin guardar')}>
     <header className="topbar">
-      <div className="brand"><span className="brand-mark"><Sparkles size={17} /></span><span>flayer<span className="brand-dot">.</span>studio</span></div>
+      <div className="brand"><img className="brand-logo" src={CASCO_ICON} alt="Casco de Ahora Nación" /><span className="brand-name">Ahora Nación<span className="brand-subtitle">Creador de Flyers</span></span></div>
       <div className="top-actions"><span className="saved" role="status"><span className="status-dot" />{saving ? 'Guardando...' : notice}</span><button className="save-button" disabled={saving || exporting} onClick={saveProject}>Guardar</button>{format === 'facebook' && <button className="publish" disabled={saving || exporting || !asset} onClick={exportFlyer}><Download size={16} />{exporting ? 'Generando PNG...' : 'Descargar PNG'}</button>}</div>
     </header>
 
@@ -131,7 +138,7 @@ function App() {
         <h1>Crea algo<br /><em>que importe.</em></h1>
         <p className="intro">Un editor ligero para convertir una idea en un flyer listo para compartir.</p>
         <div className="control-group"><label>Plantilla</label>{(Object.keys(TEMPLATES) as Format[]).map(value => <button key={value} type="button" aria-pressed={format === value} className={`format-card ${format === value ? 'active' : ''}`} onClick={() => selectTemplate(value)}>{value === 'facebook' ? <ImagePlus size={18} /> : <Clapperboard size={18} />}<span><strong>{TEMPLATES[value].label}</strong><small>{TEMPLATES[value].width} × {TEMPLATES[value].height} px · {TEMPLATES[value].ratio}</small></span><span className="radio" /></button>)}</div>
-        <div className="control-group"><label>Estilo</label><div className="segmented"><button className={mode === 'minimal' ? 'selected' : ''} onClick={() => { setMode('minimal'); setNotice('Cambios sin guardar'); }}><LayoutTemplate size={15} />Minimal</button><button className={mode === 'optimized' ? 'selected' : ''} onClick={() => { setMode('optimized'); setNotice('Cambios sin guardar'); }}><WandSparkles size={15} />Optimizada</button></div></div>
+        <div className="control-group"><label id="style-label">Estilo</label><div className="style-options" role="group" aria-labelledby="style-label">{STYLES.filter(style => !style.facebookOnly || format === 'facebook').map(style => <button key={style.value} type="button" aria-pressed={mode === style.value} className={`style-option ${mode === style.value ? 'selected' : ''}`} onClick={() => { setMode(style.value); setNotice('Cambios sin guardar'); }}><span className={`style-preview style-preview-${style.value}`} aria-hidden="true"><span /></span><span><strong>{style.label}</strong><small>{style.description}</small></span>{style.value === 'optimized' ? <WandSparkles size={15} /> : <LayoutTemplate size={15} />}</button>)}</div></div>
         <div className="control-group"><label>Color de acento</label><div className="color-row"><input aria-label="Color de acento" type="color" className="swatch" value={accent} onChange={e => setAccent(e.target.value)} /><span>{accent.toUpperCase()}</span><Palette size={15} /></div></div>
         <div className="tip"><Sparkles size={16} /><span>Consejo: usa una imagen nítida y deja aire alrededor del texto.</span></div>
       </aside>
