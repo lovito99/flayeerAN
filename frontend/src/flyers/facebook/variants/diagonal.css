@@ -1,0 +1,32 @@
+.facebook-flyer.facebook-diagonal .campaign-strip {
+  height: 21%;
+}
+
+.facebook-flyer.facebook-diagonal .campaign-strip::before {
+  top: -3cqw;
+  height: 5.9cqw;
+  clip-path: polygon(0 64%, 100% 22%, 100% 100%, 0 100%);
+}
+
+.facebook-flyer.facebook-diagonal .campaign-name {
+  bottom: 6.15cqw;
+  left: 0;
+}
+
+.facebook-flyer.facebook-diagonal .campaign-name::before {
+  border-radius: 0 .65cqw 1.2cqw 0;
+  clip-path: polygon(0 0, 99% 0, 87% 100%, 0 100%);
+}
+
+.facebook-flyer.facebook-diagonal .campaign-center {
+  bottom: 1.1cqw;
+}
+
+.facebook-flyer.facebook-diagonal .campaign-cascos {
+  bottom: .85cqw;
+}
+
+.facebook-flyer.facebook-diagonal .campaign-slogan,
+.facebook-flyer.facebook-diagonal .campaign-cascos .pill {
+  border-radius: .12cqw;
+}

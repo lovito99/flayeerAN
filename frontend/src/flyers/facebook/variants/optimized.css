@@ -1,0 +1,43 @@
+.facebook-flyer.facebook-optimized .campaign-strip {
+  height: 19.8%;
+}
+
+.facebook-flyer.facebook-optimized .campaign-strip::before {
+  top: -2cqw;
+  height: 4.5cqw;
+  clip-path: ellipse(54% 68% at 50% 100%);
+}
+
+.facebook-flyer.facebook-optimized .campaign-name {
+  bottom: 5.9cqw;
+  min-height: 18.2cqw;
+  width: 43.8cqw;
+  min-width: 43.8cqw;
+}
+
+.facebook-flyer.facebook-optimized .campaign-strip h2.name-first {
+  font-size: 4.95cqw;
+}
+
+.facebook-flyer.facebook-optimized .name-rest {
+  font-size: 2.85cqw;
+}
+
+.facebook-flyer.facebook-optimized .role-line {
+  top: -5.05cqw;
+  font-size: 1.62cqw;
+  line-height: 1.14;
+}
+
+.facebook-flyer.facebook-optimized .campaign-center {
+  bottom: .95cqw;
+}
+
+.facebook-flyer.facebook-optimized .campaign-cascos {
+  bottom: .75cqw;
+}
+
+.facebook-flyer.facebook-optimized .casco-tile {
+  width: 8.75cqw;
+  height: 8.75cqw;
+}

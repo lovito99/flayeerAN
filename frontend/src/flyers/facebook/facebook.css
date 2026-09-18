@@ -1,0 +1,345 @@
+.poster {
+  position: relative;
+  width: min(410px, 100%);
+  overflow: hidden;
+  background: #f7f7f2;
+  box-shadow: 0 10px 26px rgba(25, 29, 26, .1);
+  container-type: inline-size;
+}
+
+.facebook-flyer {
+  aspect-ratio: 4 / 5;
+  display: block;
+  background: #fff;
+}
+
+.facebook-flyer .poster-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  color: #737a73;
+  background: linear-gradient(180deg, #fff 0 52%, #eef0ea 52%);
+  font-size: 12px;
+}
+
+.facebook-flyer .image-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.facebook-flyer .image-frame:active { cursor: grabbing; }
+.facebook-flyer .image-frame:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+.facebook-flyer .image-frame img {
+  position: absolute;
+  z-index: 1;
+  max-width: none;
+  object-fit: fill;
+  pointer-events: none;
+}
+.facebook-flyer .image-frame::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 2;
+  height: 34%;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .1));
+  pointer-events: none;
+}
+
+.facebook-flyer .header-badge {
+  position: absolute;
+  top: 1.6cqw;
+  right: 2.4cqw;
+  z-index: 4;
+  width: 21.6cqw;
+  min-height: 20.6cqw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .3cqw;
+  padding: .55cqw 1cqw .68cqw;
+  border: .18cqw solid #fff;
+  border-radius: 1.55cqw;
+  background: #ed0000;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 .35cqw .9cqw rgba(0, 0, 0, .1);
+}
+.facebook-flyer .header-helmet {
+  display: block;
+  width: 18.7cqw;
+  height: 8.55cqw;
+  object-fit: contain;
+  object-position: center;
+}
+.facebook-flyer .header-badge strong {
+  display: grid;
+  gap: .36cqw;
+  width: 100%;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 3.85cqw;
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.facebook-flyer .header-badge strong span:last-child {
+  justify-self: center;
+  width: 94%;
+  padding: .1cqw .38cqw .22cqw;
+  background: #fff;
+  color: #ed0000;
+  font-size: .88em;
+}
+.facebook-flyer .header-badge em {
+  color: #fff;
+  font-family: var(--font-display);
+  font-style: normal;
+  font-size: 1.95cqw;
+  font-weight: 400;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.facebook-flyer .campaign-strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: block;
+  height: 20.8%;
+  background: var(--brand-red);
+  color: #fff;
+  overflow: visible;
+  isolation: isolate;
+}
+.facebook-flyer .campaign-strip::before {
+  content: '';
+  position: absolute;
+  left: -8cqw;
+  right: -8cqw;
+  top: -2.7cqw;
+  z-index: -1;
+  height: 5.6cqw;
+  background: var(--brand-red);
+  clip-path: ellipse(58% 72% at 50% 100%);
+}
+.facebook-flyer .campaign-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.facebook-flyer .campaign-name {
+  position: absolute;
+  left: .6cqw;
+  bottom: 6.2cqw;
+  z-index: 2;
+  justify-content: flex-start;
+  width: 45.2cqw;
+  min-width: 45.2cqw;
+  min-height: 18.8cqw;
+  padding: .8cqw 3.1cqw 1cqw 2.35cqw;
+}
+.facebook-flyer .campaign-name::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--brand-red);
+  border-radius: 0 1.1cqw 2.2cqw .6cqw;
+  clip-path: polygon(0 0, 98% 0, 88% 100%, 0 100%);
+}
+.facebook-flyer .name-prefix {
+  margin-bottom: .05cqw;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 3.05cqw;
+  font-weight: 400;
+  line-height: 1.04;
+  font-style: oblique 12deg;
+  -webkit-text-stroke: .06cqw var(--brand-red);
+  paint-order: stroke fill;
+  text-shadow: .16cqw .16cqw 0 rgba(0, 0, 0, .12);
+}
+.facebook-flyer .campaign-strip h2.name-first,
+.facebook-flyer .name-rest {
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-style: oblique 12deg;
+  line-height: 1.02;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+  text-shadow: .14cqw .14cqw 0 rgba(0, 0, 0, .08);
+}
+.facebook-flyer .campaign-strip h2.name-first {
+  margin: 0;
+  max-width: 100%;
+  font-size: 5.2cqw;
+}
+.facebook-flyer .name-rest {
+  margin: .12cqw 0 0 2.25cqw;
+  font-size: 3.05cqw;
+}
+.facebook-flyer .role-line {
+  position: absolute;
+  left: 50%;
+  top: -5.25cqw;
+  display: inline-block;
+  margin: 0;
+  padding: .18cqw 1.05cqw .28cqw;
+  background: #fff;
+  border-radius: .25cqw;
+  color: #202522;
+  font-family: var(--font-condensed);
+  font-size: 1.7cqw;
+  font-weight: 900;
+  line-height: 1.18;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  text-shadow: none;
+}
+.facebook-flyer .pill {
+  display: inline-block;
+  max-width: 100%;
+  padding: 0;
+  background: transparent;
+  color: #202522;
+  font-family: var(--font-condensed);
+  font-size: 1.8cqw;
+  font-weight: 900;
+  line-height: 1.12;
+  text-shadow: none;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.facebook-flyer .campaign-slogan {
+  display: inline-block;
+  padding: .36cqw 1.8cqw .54cqw;
+  transform: skew(-9deg);
+  background: #fff;
+  border-radius: .35cqw;
+  color: var(--brand-red);
+  font-size: 2.78cqw;
+  font-weight: 900;
+  line-height: 1.08;
+  text-transform: uppercase;
+  box-shadow: none;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.facebook-flyer .campaign-center {
+  position: absolute;
+  left: 6.8cqw;
+  bottom: 1.15cqw;
+  z-index: 4;
+  width: 31.5cqw;
+  align-items: center;
+  text-align: center;
+}
+.facebook-flyer .campaign-tagline {
+  margin: 0 0 .42cqw;
+  font-family: var(--font-script);
+  color: #fff;
+  font-size: 2.6cqw;
+  font-weight: 700;
+  line-height: 1.12;
+  text-align: center;
+}
+.facebook-flyer .campaign-cascos {
+  position: absolute;
+  right: 2.2cqw;
+  bottom: .85cqw;
+  width: 53.8cqw;
+  height: 13.8cqw;
+}
+.facebook-flyer .campaign-cascos .pill {
+  position: absolute;
+  left: 50%;
+  top: -2.35cqw;
+  margin: 0;
+  padding: .44cqw 2.1cqw .54cqw;
+  background: #fff;
+  border-radius: .35cqw;
+  color: var(--brand-red);
+  font-size: 2cqw;
+  font-weight: 900;
+  line-height: 1.14;
+  text-align: center;
+  text-shadow: none;
+  transform: translateX(-50%) skew(-8deg);
+}
+.facebook-flyer .cascos-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25cqw;
+  width: 100%;
+  padding-top: 1.2cqw;
+}
+.facebook-flyer .casco {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5cqw;
+  text-align: center;
+}
+.facebook-flyer .casco span {
+  display: block;
+  width: 100%;
+  color: #fff;
+  font: 900 .94cqw var(--font-condensed);
+  line-height: 1.18;
+  text-transform: uppercase;
+  overflow-wrap: normal;
+}
+.facebook-flyer .casco-tile {
+  position: relative;
+  width: 9.25cqw;
+  height: 9.25cqw;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: .2cqw solid #fff;
+  background: var(--brand-red);
+}
+.facebook-flyer .casco-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.facebook-flyer .casco-tile::before, .facebook-flyer .casco-tile::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 135%;
+  height: .26cqw;
+  border-radius: 1cqw;
+  background: #202522;
+}
+.facebook-flyer .casco-tile::before { transform: translate(-50%, -50%) rotate(45deg); }
+.facebook-flyer .casco-tile::after { transform: translate(-50%, -50%) rotate(-45deg); }
+.facebook-flyer .casco-hand {
+  position: absolute;
+  right: -2.8cqw;
+  top: 5.05cqw;
+  z-index: 3;
+  display: block;
+  width: 5.9cqw;
+  height: 5.9cqw;
+  pointer-events: none;
+  transform: rotate(-14deg);
+  filter: drop-shadow(.2cqw .2cqw 0 rgba(0, 0, 0, .28));
+}

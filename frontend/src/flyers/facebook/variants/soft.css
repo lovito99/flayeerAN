@@ -1,0 +1,28 @@
+.facebook-flyer.facebook-soft .campaign-strip {
+  height: 20.6%;
+}
+
+.facebook-flyer.facebook-soft .campaign-strip::before {
+  top: -2.4cqw;
+  height: 5.2cqw;
+  clip-path: ellipse(52% 72% at 50% 100%);
+}
+
+.facebook-flyer.facebook-soft .campaign-name::before,
+.facebook-flyer.facebook-soft .campaign-slogan,
+.facebook-flyer.facebook-soft .campaign-cascos .pill,
+.facebook-flyer.facebook-soft .casco-tile {
+  border-radius: .62cqw;
+}
+
+.facebook-flyer.facebook-soft .header-badge {
+  border-radius: 1.75cqw;
+}
+
+.facebook-flyer.facebook-soft .campaign-name {
+  bottom: 6.05cqw;
+}
+
+.facebook-flyer.facebook-soft .campaign-cascos {
+  bottom: .8cqw;
+}

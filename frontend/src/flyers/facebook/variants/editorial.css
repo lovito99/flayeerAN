@@ -1,0 +1,39 @@
+.facebook-flyer.facebook-editorial .campaign-strip {
+  height: 20.8%;
+}
+
+.facebook-flyer.facebook-editorial .campaign-strip::before {
+  top: -2.25cqw;
+  height: 5cqw;
+  clip-path: ellipse(62% 68% at 50% 100%);
+}
+
+.facebook-flyer.facebook-editorial .campaign-name::before {
+  background: #fff;
+  border-radius: 0 .85cqw 1.65cqw .5cqw;
+  clip-path: polygon(0 0, 98% 0, 89% 100%, 0 100%);
+  box-shadow: 0 .32cqw .8cqw rgba(0, 0, 0, .08);
+}
+
+.facebook-flyer.facebook-editorial .name-prefix,
+.facebook-flyer.facebook-editorial .campaign-strip h2.name-first,
+.facebook-flyer.facebook-editorial .name-rest {
+  color: var(--brand-red);
+  text-shadow: none;
+}
+
+.facebook-flyer.facebook-editorial .role-line {
+  background: #fff;
+  color: #202522;
+  text-shadow: none;
+}
+
+.facebook-flyer.facebook-editorial .campaign-slogan {
+  background: var(--brand-red);
+  color: #fff;
+  outline: .18cqw solid #fff;
+}
+
+.facebook-flyer.facebook-editorial .campaign-cascos .pill {
+  color: var(--brand-red);
+}

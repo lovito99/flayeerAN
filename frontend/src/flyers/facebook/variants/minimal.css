@@ -1,0 +1,15 @@
+.facebook-flyer.facebook-minimal .campaign-strip::before {
+  top: -2.7cqw;
+  height: 5.6cqw;
+  clip-path: ellipse(58% 72% at 50% 100%);
+}
+
+.facebook-flyer.facebook-minimal .campaign-name::before {
+  border-radius: 0 .95cqw 1.9cqw .55cqw;
+  clip-path: polygon(0 0, 98% 0, 88% 100%, 0 100%);
+}
+
+.facebook-flyer.facebook-minimal .campaign-slogan,
+.facebook-flyer.facebook-minimal .campaign-cascos .pill {
+  border-radius: .28cqw;
+}
