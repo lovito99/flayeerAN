@@ -23,6 +23,21 @@ const redisRequired = process.env.REDIS_REQUIRED === 'true';
 const projectLockMs = Number(process.env.PROJECT_LOCK_MS ?? 300000);
 await fs.mkdir(uploadDir, { recursive: true });
 
+function cleanUrl(value: string | undefined) {
+  return value?.trim().replace(/\/$/, '') ?? '';
+}
+
+function csv(value: string | undefined) {
+  return (value ?? '')
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+const appBaseUrl = cleanUrl(process.env.APP_BASE_URL) || `http://localhost:${port}`;
+const frontendBaseUrl = cleanUrl(process.env.FRONTEND_BASE_URL);
+const frontendPreviewUrl = cleanUrl(process.env.FRONTEND_PREVIEW_URL);
+
 let redis: Redis | null = null;
 if (redisUrl) {
   const client = new Redis(redisUrl, {
@@ -73,10 +88,7 @@ const projectSchema = z.object({
   config: z.record(z.string(), z.unknown()).optional()
 }).strict();
 
-const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173,http://localhost:4173')
-  .split(',')
-  .map(origin => origin.trim())
-  .filter(Boolean);
+const corsOrigins = csv(process.env.CORS_ORIGIN || [frontendBaseUrl, frontendPreviewUrl].filter(Boolean).join(','));
 
 function isRedisReady() {
   return redis?.status === 'ready';
@@ -203,7 +215,8 @@ app.get('/api/health', async (_req, res) => {
 
   res.status(database === 'ok' && cache !== 'error' ? 200 : 503).json({
     ok: database === 'ok' && cache !== 'error',
-    services: { database, redis: cache }
+    services: { database, redis: cache },
+    baseUrl: appBaseUrl
   });
 });
 
@@ -342,7 +355,7 @@ app.use((error: Error, _req: express.Request, res: express.Response, _next: expr
 const server = app.listen(port);
 
 server.once('listening', () => {
-  console.log(`Flayer API running on http://localhost:${port}`);
+  console.log(`Flayer API running on ${appBaseUrl}`);
 });
 
 server.on('error', (error) => {

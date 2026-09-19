@@ -38,7 +38,22 @@ Frontend:
 
 Vite usa `@vitejs/plugin-react` y `vite-tsconfig-paths` para React y aliases `@/`.
 
-## Puesta en marcha completa
+## Clonar desde Git
+
+Antes de iniciar, clona el repositorio y entra a la carpeta del proyecto:
+
+```powershell
+git clone <URL_DEL_REPOSITORIO> flayeerAN
+Set-Location flayeerAN
+```
+
+Si ya tienes el proyecto clonado, actualiza la rama antes de instalar o compilar:
+
+```powershell
+git pull
+```
+
+## Puesta en marcha local
 
 Desde la raiz del proyecto:
 
@@ -57,6 +72,14 @@ Luego abre:
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:4000`
 - Healthcheck: `http://localhost:4000/api/health` devuelve estado de PostgreSQL y Redis.
+
+Si estas en Windows y `prisma generate` falla con `EPERM` al renombrar `query_engine-windows.dll.node`, detiene cualquier backend activo de este proyecto y vuelve a ejecutar el comando:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "name = 'node.exe'" | Select-Object ProcessId, CommandLine
+Stop-Process -Id <ID_DEL_BACKEND> -Force
+npm run db:generate
+```
 
 ## Scripts desde la raiz
 
@@ -85,6 +108,9 @@ Copia `backend/.env.example` a `backend/.env`.
 
 ```env
 PORT=4000
+APP_BASE_URL="http://localhost:4000"
+FRONTEND_BASE_URL="http://localhost:5173"
+FRONTEND_PREVIEW_URL="http://localhost:4173"
 DATABASE_URL="postgresql://flayer:flayer@localhost:5433/flayer?schema=public"
 REDIS_URL="redis://localhost:6380"
 REDIS_REQUIRED=false
@@ -95,6 +121,9 @@ CORS_ORIGIN="http://localhost:5173,http://localhost:4173"
 
 Para produccion usa como base `backend/.env.production.example`. Ajusta:
 
+- `APP_BASE_URL` a la URL publica real del backend.
+- `FRONTEND_BASE_URL` a la URL publica real del frontend.
+- `FRONTEND_PREVIEW_URL` solo si sirves un preview adicional; en produccion normalmente puede quedar vacio.
 - `CORS_ORIGIN` al dominio real del frontend. Acepta varios valores separados por coma, `*` para permitir cualquier origen, o comodines como `https://*.tu-dominio.com`.
 - `UPLOAD_DIR` a una ruta persistente si no quieres guardar archivos dentro de `backend/uploads`.
 - `REDIS_REQUIRED=true` si quieres que la API falle al iniciar cuando Redis no este disponible.
@@ -186,6 +215,8 @@ Para produccion usa `frontend/.env.production.example` antes de compilar:
 - Define `VITE_API_URL=https://api.tu-dominio.com` si el backend vive en otro dominio.
 - Cambia `VITE_BASE_PATH=/subcarpeta/` si publicas el frontend dentro de una ruta y no en la raiz del dominio.
 
+Estas variables se leen durante el build de Vite. Si cambias `frontend/.env`, vuelve a ejecutar `npm --prefix frontend run build` antes de recargar PM2.
+
 ### Comandos del frontend
 
 ```powershell
@@ -195,6 +226,8 @@ npm --prefix frontend run preview  # sirve dist/ en http://localhost:4173
 ```
 
 ## Produccion con Docker + PM2
+
+Estos pasos asumen que ya clonaste el proyecto en el servidor y estas dentro de la carpeta del repositorio.
 
 1. Copia y ajusta variables:
 
@@ -213,6 +246,7 @@ npm run infra:up
 
 ```powershell
 npm run install:all
+npm run db:generate
 npm run db:push
 npm run build
 ```
