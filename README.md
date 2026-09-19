@@ -8,6 +8,20 @@ Editor web para crear flyers verticales de campana, con plantillas para Facebook
 - Docker Desktop
 - PowerShell, CMD o una terminal compatible
 
+En Ubuntu/Debian puedes preparar el servidor con:
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y git curl build-essential nginx
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker "$USER"
+```
+
+Despues de agregar tu usuario al grupo `docker`, cierra sesion y vuelve a entrar.
+
 ## Estructura
 
 ```text
@@ -52,6 +66,17 @@ Si ya tienes el proyecto clonado, actualiza la rama antes de instalar o compilar
 ```powershell
 git pull
 ```
+
+Para repositorios privados usa una llave SSH en lugar de pegar tokens en la documentacion:
+
+```bash
+ssh-keygen -t ed25519 -C "tu-correo@example.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub
+```
+
+Copia la llave publica en GitHub: <https://github.com/settings/keys>.
 
 ## Puesta en marcha local
 
@@ -107,16 +132,25 @@ Ubicacion: `backend/`
 Copia `backend/.env.example` a `backend/.env`.
 
 ```env
+# Backend
 PORT=4000
 APP_BASE_URL="http://localhost:4000"
+
+# Frontend permitido por CORS
 FRONTEND_BASE_URL="http://localhost:5173"
 FRONTEND_PREVIEW_URL="http://localhost:4173"
+CORS_ORIGIN="http://localhost:5173,http://localhost:4173"
+
+# PostgreSQL
 DATABASE_URL="postgresql://flayer:flayer@localhost:5433/flayer?schema=public"
+
+# Redis
 REDIS_URL="redis://localhost:6380"
 REDIS_REQUIRED=false
 PROJECT_LOCK_MS=300000
+
+# Archivos subidos
 UPLOAD_DIR="uploads"
-CORS_ORIGIN="http://localhost:5173,http://localhost:4173"
 ```
 
 Para produccion usa como base `backend/.env.production.example`. Ajusta:
@@ -124,7 +158,9 @@ Para produccion usa como base `backend/.env.production.example`. Ajusta:
 - `APP_BASE_URL` a la URL publica real del backend.
 - `FRONTEND_BASE_URL` a la URL publica real del frontend.
 - `FRONTEND_PREVIEW_URL` solo si sirves un preview adicional; en produccion normalmente puede quedar vacio.
-- `CORS_ORIGIN` al dominio real del frontend. Acepta varios valores separados por coma, `*` para permitir cualquier origen, o comodines como `https://*.tu-dominio.com`.
+- `CORS_ORIGIN` al dominio real del frontend. Acepta varios valores separados por coma o `*` para permitir cualquier origen.
+- `DATABASE_URL` con usuario, clave, host, puerto y nombre real de PostgreSQL.
+- `REDIS_URL` con el host/puerto real de Redis. Si Redis tiene clave usa `redis://:CLAVE@HOST:PUERTO`.
 - `UPLOAD_DIR` a una ruta persistente si no quieres guardar archivos dentro de `backend/uploads`.
 - `REDIS_REQUIRED=true` si quieres que la API falle al iniciar cuando Redis no este disponible.
 
@@ -205,7 +241,10 @@ Ubicacion: `frontend/`
 Copia `frontend/.env.example` a `frontend/.env`.
 
 ```env
+# Backend usado por el navegador en desarrollo
 VITE_API_URL=http://localhost:4000
+
+# Ruta base donde se publica el frontend
 VITE_BASE_PATH=/
 ```
 
@@ -232,8 +271,20 @@ Estos pasos asumen que ya clonaste el proyecto en el servidor y estas dentro de 
 1. Copia y ajusta variables:
 
 ```powershell
+Copy-Item .env.example .env
 Copy-Item backend/.env.production.example backend/.env
 Copy-Item frontend/.env.production.example frontend/.env
+```
+
+En Linux:
+
+```bash
+cp .env.example .env
+cp backend/.env.production.example backend/.env
+cp frontend/.env.production.example frontend/.env
+nano .env
+nano backend/.env
+nano frontend/.env
 ```
 
 2. Levanta PostgreSQL y Redis:
@@ -263,19 +314,27 @@ Por defecto PM2 levanta:
 - `flayer-api`: backend compilado en cluster con 2 instancias.
 - `flayer-frontend`: `vite preview` sirviendo `frontend/dist` en el puerto `4173`.
 
-Para cambiar la cantidad de procesos del backend:
+Para cambiar la cantidad de procesos del backend o el puerto del preview, edita `.env` en la raiz:
+
+```env
+API_INSTANCES=4
+FRONTEND_PORT=8080
+```
+
+Luego recarga PM2:
 
 ```powershell
-$env:API_INSTANCES=4
 npm run pm2:reload
 ```
 
-Para cambiar el puerto del frontend preview:
+Para que PM2 recuerde los procesos tras reiniciar el servidor:
 
-```powershell
-$env:FRONTEND_PORT=8080
-npm run pm2:reload
+```bash
+npm exec -- pm2 save
+npm exec -- pm2 startup
 ```
+
+Copia y ejecuta el comando que imprime `pm2 startup`.
 
 En un servidor publico conviene poner Nginx, Apache o Caddy delante para HTTPS y proxy hacia `localhost:4173` y `localhost:4000`.
 
@@ -288,6 +347,75 @@ https://tu-dominio.com/uploads   -> backend en localhost:4000/uploads
 ```
 
 Con esa forma, el frontend debe compilarse con `VITE_API_URL=` y el backend puede usar `CORS_ORIGIN=https://tu-dominio.com`.
+
+### Nginx con un solo dominio
+
+Ejemplo para publicar frontend, API y archivos subidos bajo el mismo dominio:
+
+```nginx
+server {
+  server_name tu-dominio.com www.tu-dominio.com;
+  client_max_body_size 100M;
+
+  location /api/ {
+    proxy_pass http://127.0.0.1:4000/api/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+
+  location /uploads/ {
+    proxy_pass http://127.0.0.1:4000/uploads/;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+
+  location / {
+    proxy_pass http://127.0.0.1:4173;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  }
+}
+```
+
+Habilita el sitio y recarga Nginx:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/flayeerAN /etc/nginx/sites-enabled/flayeerAN
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Para HTTPS:
+
+```bash
+sudo snap install --classic certbot
+sudo certbot --nginx
+```
+
+Con este proxy, usa estos valores de produccion:
+
+```env
+# backend/.env
+APP_BASE_URL="https://tu-dominio.com"
+FRONTEND_BASE_URL="https://tu-dominio.com"
+FRONTEND_PREVIEW_URL=
+CORS_ORIGIN="https://tu-dominio.com,https://www.tu-dominio.com"
+
+# frontend/.env
+VITE_API_URL=
+VITE_BASE_PATH=/
+```
+
+Si usas subdominios separados, por ejemplo `api.tu-dominio.com` y `app.tu-dominio.com`, compila el frontend con `VITE_API_URL=https://api.tu-dominio.com` y configura `CORS_ORIGIN=https://app.tu-dominio.com`.
 
 ### Funciones de la interfaz
 
