@@ -3,12 +3,20 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
     "start": "npm --prefix backend start",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
     "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install",
     "db:generate": "npm --prefix backend run db:generate",
-    "db:push": "npm --prefix backend run db:push"
+    "db:push": "npm --prefix backend run db:push",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:reload": "pm2 reload ecosystem.config.cjs --update-env",
+    "pm2:stop": "pm2 stop ecosystem.config.cjs",
+    "pm2:logs": "pm2 logs"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "pm2": "^7.0.4"
   }
 }

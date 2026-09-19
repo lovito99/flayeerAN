@@ -12,7 +12,7 @@ Editor web para crear flyers verticales de campana, con plantillas para Facebook
 
 ```text
 .
-+-- backend/        API Express, Prisma, PostgreSQL y carga de archivos
++-- backend/        API Express, Prisma, PostgreSQL, Redis y carga de archivos
 +-- frontend/       Aplicacion React + Vite
 +-- docker-compose.yml
 `-- package.json    Scripts para ejecutar ambos proyectos desde la raiz
@@ -25,6 +25,7 @@ Backend:
 - Expone la API HTTP con Express.
 - Valida proyectos, formatos, dimensiones y archivos.
 - Persiste datos en PostgreSQL mediante Prisma.
+- Usa Redis para rate limit compartido entre procesos y locks cortos por proyecto.
 - Guarda y sirve archivos subidos desde `/uploads`.
 
 Frontend:
@@ -55,16 +56,23 @@ Luego abre:
 
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:4000`
-- Healthcheck: `http://localhost:4000/api/health`
+- Healthcheck: `http://localhost:4000/api/health` devuelve estado de PostgreSQL y Redis.
 
 ## Scripts desde la raiz
 
 ```powershell
 npm run install:all   # instala dependencias de raiz, backend y frontend
 npm run dev           # ejecuta backend y frontend en modo desarrollo
+npm run build         # compila backend y frontend
 npm run start         # ejecuta el backend compilado
+npm run infra:up      # levanta PostgreSQL y Redis con Docker
+npm run infra:down    # detiene la infraestructura Docker
 npm run db:generate   # genera el cliente de Prisma
 npm run db:push       # sincroniza el schema de Prisma con PostgreSQL
+npm run pm2:start     # inicia backend y frontend preview con PM2
+npm run pm2:reload    # recarga PM2 tomando variables actualizadas
+npm run pm2:stop      # detiene las apps PM2
+npm run pm2:logs      # muestra logs PM2
 ```
 
 ## Backend
@@ -78,13 +86,22 @@ Copia `backend/.env.example` a `backend/.env`.
 ```env
 PORT=4000
 DATABASE_URL="postgresql://flayer:flayer@localhost:5433/flayer?schema=public"
+REDIS_URL="redis://localhost:6380"
+REDIS_REQUIRED=false
+PROJECT_LOCK_MS=300000
 UPLOAD_DIR="uploads"
-CORS_ORIGIN="http://localhost:5173"
+CORS_ORIGIN="http://localhost:5173,http://localhost:4173"
 ```
 
-### Base de datos
+Para produccion usa como base `backend/.env.production.example`. Ajusta:
 
-El proyecto usa PostgreSQL 16 con Docker. El servicio queda publicado en el puerto local `5433`.
+- `CORS_ORIGIN` al dominio real del frontend. Acepta varios valores separados por coma, `*` para permitir cualquier origen, o comodines como `https://*.tu-dominio.com`.
+- `UPLOAD_DIR` a una ruta persistente si no quieres guardar archivos dentro de `backend/uploads`.
+- `REDIS_REQUIRED=true` si quieres que la API falle al iniciar cuando Redis no este disponible.
+
+### Base de datos y Redis
+
+El proyecto usa PostgreSQL 16 y Redis 7 con Docker. PostgreSQL queda publicado en `5433` y Redis en `6380` para evitar choque con Redis local.
 
 ```powershell
 docker compose up -d
@@ -93,6 +110,11 @@ npm --prefix backend run db:push
 ```
 
 Los comandos `dev` y `build` del backend ejecutan `prisma generate` automaticamente antes de iniciar o compilar. Esto genera tipos y cliente de Prisma, pero no modifica la base de datos. Para aplicar el schema usa `db:push`.
+
+Redis se usa para:
+
+- Rate limit compartido cuando PM2 corre varias instancias del backend.
+- Bloqueo corto por proyecto durante `PATCH /api/projects/:id` y `POST /api/projects/:id/assets`, evitando escrituras simultaneas sobre el mismo proyecto.
 
 ### Comandos del backend
 
@@ -143,6 +165,8 @@ Validaciones principales:
 - Los archivos subidos se sirven desde `/uploads`.
 - Los errores se devuelven como JSON con la forma `{ "error": "mensaje" }`.
 
+Si dos sesiones intentan guardar el mismo proyecto al mismo tiempo, la API responde `409` para la segunda escritura con un mensaje para reintentar en unos segundos. La descarga de PNG ocurre en el navegador y no bloquea a otros usuarios.
+
 ## Frontend
 
 Ubicacion: `frontend/`
@@ -153,14 +177,83 @@ Copia `frontend/.env.example` a `frontend/.env`.
 
 ```env
 VITE_API_URL=http://localhost:4000
+VITE_BASE_PATH=/
 ```
+
+Para produccion usa `frontend/.env.production.example` antes de compilar:
+
+- Deja `VITE_API_URL=` vacio si frontend y backend salen por el mismo dominio y tu proxy redirige `/api` y `/uploads` al backend.
+- Define `VITE_API_URL=https://api.tu-dominio.com` si el backend vive en otro dominio.
+- Cambia `VITE_BASE_PATH=/subcarpeta/` si publicas el frontend dentro de una ruta y no en la raiz del dominio.
 
 ### Comandos del frontend
 
 ```powershell
 npm --prefix frontend run dev      # Vite en http://localhost:5173
 npm --prefix frontend run build    # typecheck y build de produccion
+npm --prefix frontend run preview  # sirve dist/ en http://localhost:4173
 ```
+
+## Produccion con Docker + PM2
+
+1. Copia y ajusta variables:
+
+```powershell
+Copy-Item backend/.env.production.example backend/.env
+Copy-Item frontend/.env.production.example frontend/.env
+```
+
+2. Levanta PostgreSQL y Redis:
+
+```powershell
+npm run infra:up
+```
+
+3. Instala, aplica schema y compila:
+
+```powershell
+npm run install:all
+npm run db:push
+npm run build
+```
+
+4. Inicia con PM2:
+
+```powershell
+npm run pm2:start
+npm run pm2:logs
+```
+
+Por defecto PM2 levanta:
+
+- `flayer-api`: backend compilado en cluster con 2 instancias.
+- `flayer-frontend`: `vite preview` sirviendo `frontend/dist` en el puerto `4173`.
+
+Para cambiar la cantidad de procesos del backend:
+
+```powershell
+$env:API_INSTANCES=4
+npm run pm2:reload
+```
+
+Para cambiar el puerto del frontend preview:
+
+```powershell
+$env:FRONTEND_PORT=8080
+npm run pm2:reload
+```
+
+En un servidor publico conviene poner Nginx, Apache o Caddy delante para HTTPS y proxy hacia `localhost:4173` y `localhost:4000`.
+
+Ejemplo conceptual de proxy con un solo dominio:
+
+```text
+https://tu-dominio.com/          -> frontend en localhost:4173
+https://tu-dominio.com/api       -> backend en localhost:4000/api
+https://tu-dominio.com/uploads   -> backend en localhost:4000/uploads
+```
+
+Con esa forma, el frontend debe compilarse con `VITE_API_URL=` y el backend puede usar `CORS_ORIGIN=https://tu-dominio.com`.
 
 ### Funciones de la interfaz
 

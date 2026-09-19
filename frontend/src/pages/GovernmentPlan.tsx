@@ -1,4 +1,5 @@
-import { ArrowLeft, BarChart3, Clapperboard, FileText, Layers3, MapPinned, UsersRound } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, BarChart3, Clapperboard, FileText, Layers3, MapPinned, Search, UsersRound, X } from 'lucide-react';
 import { CASCO_ICON } from '@/config';
 import { governmentPlanDimensions, governmentPlanPages, governmentPlanStats } from '@/data/governmentPlan';
 import './government-plan.css';
@@ -142,6 +143,12 @@ function PlanPageContent({ text }: { text: string }) {
 }
 
 export function GovernmentPlan({ onBack, onCreateVideo }: GovernmentPlanProps) {
+  const [query, setQuery] = useState('');
+  const normalizedQuery = query.trim().toLocaleLowerCase('es');
+  const visiblePages = normalizedQuery
+    ? governmentPlanPages.filter(page => `${page.title} ${page.text}`.toLocaleLowerCase('es').includes(normalizedQuery))
+    : governmentPlanPages;
+
   return (
     <main className="plan-shell">
       <header className="plan-hero">
@@ -155,7 +162,7 @@ export function GovernmentPlan({ onBack, onCreateVideo }: GovernmentPlanProps) {
 
         <div className="plan-hero-copy">
           <p className="eyebrow">Nuestro plan de gobierno</p>
-          <h1>Documento completo convertido a HTML</h1>
+          <h1>Plan de Gobierno de Ahora Nación, Distrito de Quiquijana, Alcaldía 2027-2030</h1>
           <p>
             Consulta las 54 páginas del plan por partes, con datos clave de población,
             dimensiones de trabajo e índice para ubicar rápidamente cada sección.
@@ -247,10 +254,25 @@ export function GovernmentPlan({ onBack, onCreateVideo }: GovernmentPlanProps) {
         <aside className="plan-index">
           <div className="plan-index-head">
             <strong>Índice rápido</strong>
-            <span>{governmentPlanPages.length} páginas</span>
+            <span>{visiblePages.length} de {governmentPlanPages.length}</span>
           </div>
+          <label className="plan-search">
+            <Search size={16} aria-hidden="true" />
+            <span className="sr-only">Buscar en el plan</span>
+            <input
+              type="search"
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+              placeholder="Buscar en el plan"
+            />
+            {query && (
+              <button type="button" onClick={() => setQuery('')} aria-label="Limpiar búsqueda">
+                <X size={15} />
+              </button>
+            )}
+          </label>
           <nav aria-label="Páginas destacadas del plan">
-            {featuredPages.map(page => (
+            {(normalizedQuery ? visiblePages : featuredPages).map(page => (
               <a href={`#plan-page-${page.page}`} key={page.page}>
                 <span>{String(page.page).padStart(2, '0')}</span>
                 {page.title}
@@ -260,7 +282,14 @@ export function GovernmentPlan({ onBack, onCreateVideo }: GovernmentPlanProps) {
         </aside>
 
         <div className="plan-pages">
-          {governmentPlanPages.map(page => (
+          {visiblePages.length === 0 && (
+            <div className="plan-empty" role="status">
+              <Search size={22} aria-hidden="true" />
+              <strong>No encontramos esa búsqueda</strong>
+              <p>Prueba con otra palabra o limpia el filtro para ver todo el documento.</p>
+            </div>
+          )}
+          {visiblePages.map(page => (
             <article className="plan-page" id={`plan-page-${page.page}`} key={page.page}>
               <div className="plan-page-head">
                 <span>Página {String(page.page).padStart(2, '0')}</span>

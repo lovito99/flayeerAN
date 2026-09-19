@@ -5,22 +5,46 @@ export type GovernmentPlanPage = {
 };
 
 export const governmentPlanStats = [
-  { label: 'Poblaci?n total', value: '10 336', detail: 'Habitantes seg?n CPV 2017' },
-  { label: 'Hombres', value: '5 125', detail: 'Composici?n por sexo' },
-  { label: 'Mujeres', value: '5 211', detail: 'Composici?n por sexo' },
-  { label: 'Zona urbana', value: '3 444', detail: 'Poblaci?n censada' },
-  { label: 'Zona rural', value: '6 892', detail: 'Poblaci?n censada' },
-  { label: 'Comunidades', value: '18', detail: 'Comunidades campesinas identificadas' }
+  {
+    "label": "Población total",
+    "value": "10 336",
+    "detail": "Habitantes según CPV 2017"
+  },
+  {
+    "label": "Hombres",
+    "value": "5 125",
+    "detail": "Composición por sexo"
+  },
+  {
+    "label": "Mujeres",
+    "value": "5 211",
+    "detail": "Composición por sexo"
+  },
+  {
+    "label": "Zona urbana",
+    "value": "3 444",
+    "detail": "Población censada"
+  },
+  {
+    "label": "Zona rural",
+    "value": "6 892",
+    "detail": "Población censada"
+  },
+  {
+    "label": "Comunidades",
+    "value": "18",
+    "detail": "Comunidades campesinas identificadas"
+  }
 ] as const;
 
 export const governmentPlanDimensions = [
-  'Dimensi?n Social',
-  'Dimensi?n Econ?mica',
-  'Dimensi?n Ambiental',
-  'Dimensi?n Institucional'
+  "Dimensión Social",
+  "Dimensión Económica",
+  "Dimensión Ambiental",
+  "Dimensión Institucional"
 ] as const;
 
-export const governmentPlanPages: GovernmentPlanPage[] = [
+const rawGovernmentPlanPages: GovernmentPlanPage[] = [
   {
     "page": 1,
     "title": "Portada del plan de gobierno",
@@ -38,7 +62,7 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 4,
-    "title": "Ii.1. Principios:",
+    "title": "II.1. Principios",
     "text": "II.1. PRINCIPIOS:\n\nEl partido político AHORA NACIÓN-AN, por acuerdo unánime de los fundadores,\ntiene los siguientes principios:\n    1. La construcción de la nación peruana. Ahora Nación sostiene la tesis de que\n       el Perú es una nación en formación y que la causa noble que guía nuestros\n       corazones es la de culminar esta gran tarea histórica.\n    2. Todo el poder a las regiones. Ahora Nación apuesta por el desarrollo local y\n       regional como auténtica forma de descentralización productiva y de\n       industrialización nacional, como acto de justicia. El poder a las regiones\n       como la forma más eficiente de una estrategia nacional para la\n       competitividad de la nación.\n    3. Un militante un voto. Ahora Nación alienta el surgimiento de un sistema de\n       partidos por razón de Estado, apostamos que alentando el disenso y\n       promoviendo la oposición podremos discutir la naturaleza de nuestro\n       propio cambio, lo que resiste apoya.\n    4. Unidad, Justicia y Libertad. Ahora Nación alienta el surgimiento de una\n       coalición nacional de centro izquierda bajo el principio de un militante un\n       voto.\n    5. Igualdad de derechos y lucha contra todo tipo de discriminación. Ahora\n       Nación reconoce la igualdad ante la ley de todos los hombres y mujeres del\n       Perú, sin distinción de raza, género, nacionalidad, condición social o\n       económica como reconoce la Constitución política del Perú.\n\nII.2. OBJETIVOS:\n\nEl Partido político AHORA NACIÓN, propone instaurar un Estado Democrático y\nSoberano, integrado por servidores honestos, comprometidos y profesionalmente\nvaliosos, dignos de buen ejemplo y, donde los poderes y las diversas instituciones\nque lo conforman estén al servicio total de la ciudadanía, con probidad y\ntransparencia. Para ello, se propone:\n\n   1. Consolidar el proceso de democratización del país, con un Estado Peruano\n       democrático, descentralizado, soberano, libre de corrupción e injusticia.\n\n   2. Gestionar de manera eficaz, eficiente y transparente los servicios públicos de\n       calidad, en donde junto a las autoridades elegidas, los representantes de la\n       sociedad civil organizados participan en todos los niveles y sectores del\n       gobierno.\n\n   3. Cumplir el principio fundamental de la democracia y de la convivencia\n       pacífica: que todos somos iguales ante la Ley, prevaleciendo el Estado de\n       Derecho con Justicia Social, con respeto irrestricto del marco\n       constitucional.\n\n   4. Fortalecer el desarrollo de una República Democrática y Descentralizada,\n       con cimientos sólidos, donde se distingan la convivencia armoniosa y\n       fraterna de todas las culturas."
   },
   {
@@ -53,7 +77,7 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 7,
-    "title": "P?gina 7",
+    "title": "Página 7",
     "text": "                          Gráfico N° 1: Distrito de Quiquijana\n\n\n\n\nFuente: Elaboración técnica"
   },
   {
@@ -78,7 +102,7 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 12,
-    "title": "P?gina 12",
+    "title": "Página 12",
     "text": " 0067        CALLQUI             163        84       79        59     59         -\n 0070        HUAMAN              93         49       44        33     32         1\n 0071        AMAYUNCA            83         42       41        39     33         6\n 0072        ANTALLACTA          128        64       64        52     51         1\n 0073        CCASAPAMPA          80         34       46        29     28         1\n 0074        HUASAMAYO           7          5        2         8      8          -\n 0075        UNION               45         24       21        21     20         1\n 0076        HUISCA              40         25       15        11     11         -\n 0078        CANCHACANCHA        365        177      188       112    105        7\n 0079        HUACOS              63         30       33        24     24         -\n 0080        JAPO                47         23       24        15     15         -\n 0081        ACCOCANCHA          32         14       18        16     16         -\n 0082        CCAUCHANI           73         37       36        29     29         -\n 0083        SIUSI               20         10       10        11     11         -\n 0084        COLTAPATA           -          -        -         1      1          -\n\n\n 0085        POMAQOCHA           40         18       22        16     16         -\n 0086        CHAPUPATA           2          1        1         2      2          -\n 0087        COCHACUCHO          57         29       28        26     26         -\n 0088        HUILCANI            11         7        4         4      4          -\n 0089        MITAHUAYLLA         45         25       20        22     22         -\n 0090        HUAYLLAPAMPA        15         8        7         7      7          -\n 0093        ROSASPAMPA          52         29       23        29     29         -\n 0094        KISACANCHA          15         8        7         11     11         -\n 0095        MOSOCLLACTA         21         9        12        11     11         -\n 0096        PACAMACHAY          25         12       13        8      8          -\n 0097        CHICHAPAMPA         102        53       49        48     48         -\n 0098        IZCUCHACA           12         8        4         7      7          -\n 0099        PATAHUASI           4          2        2         1      1          -\n 0100        QUERAWA             19         12       7         9      9          -\n\n\nFuente: INEI, CPV 2017.\n\n\n\nEn cuanto a la tasa de habitualidad por vivienda, de acuerdo a las encuestas\nrealizadas es de 3.9 personas por vivienda, en ese sentido, para el análisis se utilizará\n4 personas por vivienda, por método de redondeo poblacional.\n\nLos indicadores provenientes del Mapa de Pobreza constituyen un insumo clave\npara la priorización del gasto público y la adecuada focalización de los proyectos\nde inversión bajo el marco de Invierte.pe, evidenciando que según el último dato\noficial desagregado a nivel distrital elaborado por el INEI (2021) sitúa la pobreza\nmonetaria en Quiquijana en un rango de entre 36.8% y 58.9%, en la estructura\nestadística del Mapa de Pobreza Monetaria, el INEI ubica a Quiquijana en el Grupo\nRobusto N° 8. Esto significa que el distrito se encuentra en un nivel de\nvulnerabilidad intermedio-alto dentro de la región Cusco."
   },
   {
@@ -88,7 +112,7 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 14,
-    "title": "P?gina 14",
+    "title": "Página 14",
     "text": "Repositorio Único Nacional de Información en Salud (REUNIS) y los consolidados\nde la Encuesta Demográfica y de Salud Familiar.\n\n                Tabla N° 4: Anemia infantil en el distrito de Quiquijana\n\n\n\n\n                                          Fuente: MINSA\n\n\n\nC) Seguro de salud\n\nEl análisis del Aseguramiento Universal en Salud (AUS) en el distrito evidencia una\npoblación total de asegurados que alcanzó los 9,297 en 2017. Se observa un claro\npredominio del Seguro Integral de Salud (SIS), con 8,827 afiliados, consolidándose\ncomo el principal mecanismo de protección sanitaria en Quiquijana; le sigue\nEsSalud con 404 afiliados, mientras que las Fuerzas Armadas registran 20 afiliados.\nEsta estructura evidencia una alta dependencia del SIS, planteando la necesidad\nde mejorar la calidad y oportunidad de los servicios de salud locales.\n\n Cuadro N° 03: Población censada, por afiliación a algún tipo de seguro de salud en\n                           el distrito de Quiquijana\n\n\n                                   Afiliado a algún tipo de seguro de salud\n\nProvincia, distrito, área                           Seguro\nurbana                             Seguro           de\n                          Total                                Seguro         Otro     Ninguno\ny rural, sexo y grupos             Integral         fuerzas\n                                            ESSALUD            privado        seguro\nde edad                            de Salud         armadas\n                                                               de salud       1/\n                                   (SIS)            o\n                                                    policiales\n\nDISTRITO QUIQUIJANA       10 336   8 827       404        20           21         25   1 051\n\nMenores de 1 año          181       167        8          1        -          -        5"
   },
   {
@@ -143,12 +167,12 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 25,
-    "title": "P?gina 25",
+    "title": "Página 25",
     "text": "Fuente: INEI\n\n\n\nB) Cobertura del servicio de agua\n\nCentrada específicamente en el abastecimiento hídrico, esta tabla muestra cómo\nse distribuye el acceso al agua en las viviendas del distrito. Mayoría en red pública:\nLa principal fuente de agua es la \"Red pública fuera de la vivienda, pero dentro de\nla edificación\" con un total de 2,125 viviendas. Brecha urbano-rural: El área rural\nconcentra la mayor cantidad de viviendas censadas (1,927 frente a 886 urbanas).\nFuentes naturales en el campo: El uso de pozos (221), manantiales o puquios (89), y\nríos o lagunas (55) es casi exclusivo del área rural, lo que configura una brecha\nestructural que requiere intervención prioritaria. En conjunto, estos resultados\nevidencian la necesidad de fortalecer la expansión de conexiones domiciliarias\ndirectas y mejorar la calidad del servicio, como parte de una estrategia integral de\nacceso universal y seguro al agua potable.\n\n                       Cuadro N° 05: Acceso a agua segura"
   },
   {
     "page": 26,
-    "title": "P?gina 26",
+    "title": "Página 26",
     "text": "V: Abastecimiento de agua en la vivienda                                        V: Área concepto censal\n                                                                                   Urbano censal              Rural        Total\n Red pública dentro de la vivienda                                                           104             censal\n                                                                                                               117          221\n Red pública fuera de la vivienda, pero dentro de la edificación                             751             1 374         2 125\n Pilón o pileta de uso público                                                                  27              59           86\n Pozo (agua subterránea)                                                                        1              221          222\n Manantial o puquio                                                                              -              89           89\n Río, acequia, lago, laguna                                                                      -              55           55\n Otro                                                                                            -               1            1\n Vecino                                                                                         3               11           14\n Total                                                                                       886             1 927         2 813\n\nFuente: INEI\n\n\nC) Distribución según forma de eliminación de excretas\n\nPredominio urbano en red pública: La gran mayoría de las viviendas urbanas (806\nde 886) cuenta con red pública de desagüe. Deficiencia de saneamiento rural: En\nel área rural predomina el uso de pozo ciego o negro (495), campo abierto (444) y\nletrinas (409). Brecha crítica de infraestructura: Solo 16 viviendas rurales tienen\ndesagüe dentro de su hogar\n\n. En conjunto, estos resultados evidencian la necesidad de priorizar la ampliación\ndel alcantarillado en zonas rurales, así como la sustitución progresiva de sistemas\nprecarios, con el fin de garantizar condiciones sanitarias adecuadas y reducir\nriesgos para la salud pública.\n\n                                 Cuadro N° 06: Saneamiento de excretas\n          V: Servicio higiénico que tiene la vivienda                                     V: Área concepto\n                                                                                                censal\n                                                                                        Urbano    Rural Total\n           Red pública de desagüe dentro de la vivienda                                     78 censal\n                                                                                         censal     16     94\n           Red pública de desagüe fuera de la vivienda, pero dentro de la edificación     728         272       1 000\n           Pozo séptico, tanque séptico o biodigestor                                       9         267         276\n           Letrina (con tratamiento)                                                        7         409         416\n           Pozo ciego o negro                                                              11         495         506\n           Río, acequia, canal o similar                                                   13          18             31\n           Campo abierto o al aire libre                                                   38         444         482\n           Otro                                                                             2           6             8\n           Total                                                                          886        1 927      2 813\n\nFuente: INEI\n\n\n\nD) Acceso a alumbrado eléctrico\n\nEsta tabla cuantifica la brecha de energía eléctrica dividiendo los resultados según\nel entorno geográfico de las viviendas. De los 2055 hogares que sí disponen de"
   },
   {
@@ -178,12 +202,12 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 32,
-    "title": "P?gina 32",
+    "title": "Página 32",
     "text": "papa, 2,100 kg/ha, siendo el departamental 18,000 kg. /ha, observándose\ndiferencias significativas al interior del distrito.\nLa tecnología agrícola de la zona de estudios se diferencia de acuerdo al grado de\ntenencia de las tierras y básicamente a los niveles de tecnología empleada en sus\ncultivos, la cercanía o acceso a las vías de comunicación y al piso ecológico donde\nse encuentran los productores, además de tener en algunos casos todavía áreas de\nrotación o muyus, cuyas áreas ya no descansan lo necesario para la recuperación\nde la fertilidad natural del suelo.\nQuiquijana viene consolidándose como una de las zonas de producción de cultivos\nde corte como rosas, astromelias, lillium entre otros bajo fitotoldo.\n        Gráfico Nº 03: Infraestructura productiva en el distrito de Quiquijana\n\n\n\n\nGanadería\nEl desarrollo pecuario en la zona es complementario a la actividad agrícola. La\nganadería de crianza de toro engordado y cuyes son la más importante en el\ndistrito, existiendo una tenencia mayor con respecto a los demás animales, en\ncuanto a la presencia de ganado ovino, camélidos sudamericanos, ésta es mucho\nmenor.\nQuiquijana esta considerado como la capital regional de toro engordado, actividad\nfundamental de muchas familias del distrito.\n\n\n                     Gráfico Nº 04: Festival de Toro Engordado"
   },
   {
     "page": 33,
-    "title": "P?gina 33",
+    "title": "Página 33",
     "text": "Turismo\nEl distrito de Quiquijana, posee paisajes naturales que posibilitan nuevas formas\nde promoción del recurso turístico, la existencia de la laguna de Huathualaguna\nrodeado de zonas de cultivo y Microcuencas con belleza natural pueden ser\nutilizados para actividades de recreación y esparcimiento.\nEl patrimonio monumental existente es de importancia en el ámbito del distrito.\nEl centro arqueológico de Urin Qosqo. El cual se encuentra deteriorado por la\nmaleza que lo rodea y por pastoreo.\nEn la comunidad de Callatiac existia un centro arqueológico el cual fue removido\npara la construcción de una cancha de deporte.\nEn los últimos años se viene promoviendo Las Líneas y Ruedas de Hayuni (también\nconocidas como Pallay Orqo) son un atractivo turístico ubicado en la comunidad\nde Hayuni, se caracterizan por presentar extrañas líneas y formaciones circulares\nsobre las laderas de los cerros, que desde lejos parecen figuras geométricas y\nruedas alineadas\n\n\n                     Gráfico Nº 05: Lines y ruedas de Hayuni"
   },
   {
@@ -238,7 +262,7 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 44,
-    "title": "P?gina 44",
+    "title": "Página 44",
     "text": "●   Problema Público Identificado: Dependencia crítica de las transferencias\n    del Gobierno Central y brechas en la recaudación de ingresos propios. Esta\n    debilidad fiscal limita la capacidad del municipio para realizar inversiones\n    propias de alto impacto sin depender exclusivamente del presupuesto\n    nacional.\n\n●   Estrategia Institucional: Estrategia de Eficiencia Tributaria y Gestión Fiscal\n    responsable.\n\n    Qué hará la organización política: Modernizar la administración tributaria\n    municipal mediante la actualización del catastro urbano, incentivando la\n    formalización del contribuyente a través de campañas de educación\n    tributaria y facilitación de pagos, permitiendo así ampliar la base gravable y\n    optimizar la ejecución del gasto de inversión.\n\n●   Actividades a Desarrollar\n\n       o   Actualización catastral masiva para el sinceramiento del Impuesto\n           Predial y arbitrios municipales.\n\n       o   Implementación de un sistema de cobranza coactiva ágil y un\n           programa de incentivos para contribuyentes puntuales.\n\n       o   Fortalecimiento de la Unidad de Programación Multianual de\n           Inversiones para asegurar que el gasto público se alinee con los\n           objetivos del PEI y las necesidades reales del distrito.\n\n●   Indicadores de Medición: Índice de eficiencia en la recaudación de ingresos\n    propios (Ejecutado vs. Programado).\n\n       o   Meta: Incrementar la recaudación en un 30% acumulado al 2030.\n\n●   Indicador de Producto: Número de unidades catastrales actualizadas y\n    formalizadas.\n\n       o   Meta: Actualizar el 100% del catastro urbano del distrito.\n\n3. Gestión del Talento Humano y Ética en el Servicio Público\n\n●   Problema Público Identificado: Necesidad de cerrar la brecha de\n    competencias técnicas en el personal municipal y fortalecer la cultura de\n    integridad para combatir la desconfianza ciudadana, garantizando que el\n    servidor público esté orientado al servicio y a la eficiencia.\n\n●   Estrategia Institucional: Programa de Gestión del Talento Humano y Ética\n    Institucional.\n\n    Qué hará la organización política: Institucionalizar la meritocracia,\n    implementando un programa de inducción, capacitación continua y un\n    código de ética municipal que promueva la integridad, el servicio de calidad\n    y las cero tolerancias a la corrupción.\n\n●   Actividades a Desarrollar"
   },
   {
@@ -263,7 +287,7 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 49,
-    "title": "P?gina 49",
+    "title": "Página 49",
     "text": "Principios\nEl partido AHORA NACIÓN se rige por principios fundamentales\nque orientan su acción política. Entre ellos destacan la construcción\nde la nación peruana como una tarea histórica aún en proceso; la\ndescentralización efectiva bajo el enfoque de “todo el poder a las\nregiones” como mecanismo de desarrollo productivo; y la\npromoción de la participación democrática bajo el principio de “un\nmilitante, un voto”. Asimismo, se fundamenta en los valores de\nunidad, justicia y libertad, promoviendo una coalición política con\nenfoque de centro izquierda, así como en la igualdad de derechos y\nla lucha contra toda forma de discriminación, reconociendo la\nigualdad ante la ley de todos los ciudadanos sin distinción.\n\n\n\n\nObjetivos\nEl objetivo central de AHORA NACIÓN es instaurar un Estado\ndemocrático, descentralizado y soberano, integrado por servidores\npúblicos honestos, capaces y comprometidos con el desarrollo del\npaís, donde las instituciones funcionen con probidad y\ntransparencia al servicio de la ciudadanía. En ese marco, se plantea\nconsolidar la democratización del país, fortalecer un Estado libre de\ncorrupción e injusticia, y garantizar una gestión eficiente y\ntransparente de los servicios públicos con participación activa de la\nsociedad civil. Asimismo, se busca asegurar el respeto al Estado de\nderecho, fortalecer una república descentralizada con instituciones\nsólidas, garantizar un sistema de justicia sin privilegios y asegurar el\nacceso universal a servicios fundamentales como salud y\neducación.\n\nValores\nLos valores de AHORA NACIÓN reflejan su compromiso con una\nsociedad más equitativa y solidaria. Entre ellos destacan la justicia\nsocial como base para corregir desigualdades históricas; la\nsolidaridad como principio de protección a los sectores más\nvulnerables; la descentralización como eje del desarrollo territorial;\ny la promoción de una economía con responsabilidad social que\ncombine crecimiento con equidad. Asimismo, se incorpora la\nsostenibilidad como principio de respeto al medio ambiente y la\ntransparencia y ética pública como pilares para combatir la\ncorrupción y fortalecer la institucionalidad."
   },
   {
@@ -273,7 +297,7 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 51,
-    "title": "P?gina 51",
+    "title": "Página 51",
     "text": "Limitada oferta  Mejorar la              Nº de servicios         Incrementar en +50%\nde servicios de  capacidad               ampliados / personal    la capacidad operativa\nsalud publica.   resolutiva del          de salud.\n                 centro de salud         N° de puestos y/o\n                 de Quiquijana y         puestos de auxilio de\n                 Creación de             salud.\n                 puestos de salud\n                 y/o puestos de\n                 auxilio de salud\n                 en las\n                 Microcuencas.\nAlta dependencia Optimizar el            % de población con      Alcanzar cobertura\ndel SIS y        acceso y calidad        acceso efectivo a       efectiva >95%\npoblación        de atención en          servicios de salud\nvulnerable       salud pública\nDébil enfoque    Implementar             Nº de campañas de       Ejecutar al menos 4\npreventivo en    campañas                salud ejecutadas        campañas anuales\nsalud pública    permanentes de\n                 salud preventiva y\n                 comunitaria\nBajos niveles de     Mejorar el          % de estudiantes con    Incrementar en +20\nlogro en             rendimiento         logro satisfactorio     puntos porcentuales\ncomprensión          académico\nlectora (14% – 2%)   mediante\n                     programas de\n                     refuerzo escolar\nBajo rendimiento     Fortalecer          % de estudiantes con    Incrementar en +25\nen lógico-           competencias        logro satisfactorio     puntos\nmatemática (14%      matemáticas\n- 3%)                desde nivel\n                     primario\nDeficiente           Mejorar y           % de locales en buen    Alcanzar 80% de\ninfraestructura      rehabilitar la      estado                  infraestructura\neducativa (91.3%     infraestructura                             adecuada\nen mal estado)       educativa pública\nBrecha crítica de    Implementar         % de colegios con       Alcanzar 80% de\nacceso a internet    conectividad        acceso a internet       cobertura\n(92.3%)              digital en\n                     instituciones\n                     educativas\nUso intensivo de     Optimizar y         Nº de aulas             Construcción/mejora\nlocales              ampliar             implementadas           de al menos 10 locales\n(hacinamiento        infraestructura\neducativo)           educativa\nBrecha en acceso     Ampliar la          % de viviendas con      Incrementar cobertura\na agua potable       cobertura de        agua potable            a 95%\n(27.5% sin           agua potable\ncobertura)           domiciliaria\n                     segura"
   },
   {
@@ -288,7 +312,63 @@ export const governmentPlanPages: GovernmentPlanPage[] = [
   },
   {
     "page": 54,
-    "title": "P?gina 54",
+    "title": "Propuesta De Rendición De Cuentas Sobre El Cumplimiento Del Plan",
     "text": "Escasa articulación     Fortalecer el POI y PEI   % de cumplimiento      Alcanzar >90% de\nentre planificación       con enfoque por              de metas           cumplimiento\n   y ejecución                resultados            institucionales\n\n\nPROPUESTA DE RENDICIÓN DE CUENTAS SOBRE EL CUMPLIMIENTO DEL PLAN\nLa gestión municipal implementará un sistema de rendición de cuentas basado en la\ntransparencia, participación ciudadana y seguimiento por resultados, mediante la\npublicación periódica de informes de avance del Plan de Gobierno, audiencias públicas\nsemestrales y plataformas digitales de acceso abierto. Se establecerán indicadores de\ndesempeño vinculados al POI y PEI, permitiendo evaluar el cumplimiento de metas\nfísicas y financieras, garantizando así el control social y la mejora continua de la gestión\npública local."
   }
 ];
+
+const contentCorrections: Record<string, string> = {
+  'AHORA NACION QUIQUIJANA': 'AHORA NACIÓN QUIQUIJANA',
+  'se debe de\nconstruir recogiendo las demandas que aquejan a nuestra realidad de nuestros\nconciudadanos': 'debe construirse recogiendo las demandas de nuestros\nconciudadanos',
+  'CARACTERIZACION DEL DISTRITO': 'CARACTERIZACIÓN DEL DISTRITO',
+  'parte sur este de la Provincia': 'parte sureste de la provincia',
+  'nos dá a conocer': 'nos da a conocer',
+  'Clasificación Climática del distrito d Quiquijana': 'Clasificación Climática del distrito de Quiquijana',
+  'aspectos poblaciones': 'aspectos poblacionales',
+  'dos (2) solo establecimiento de': 'dos (2) establecimientos de',
+  'Centros de Reforzamiento Escolar Municipal\n              Municipales': 'Centros de Reforzamiento Escolar Municipales',
+  'ampliación de 01 carreras': 'ampliación de 01 carrera',
+  'DIMENSION ECONOMICA': 'DIMENSIÓN ECONÓMICA',
+  'DESCRIPCION          AREA': 'DESCRIPCIÓN          ÁREA',
+  ' Areas sin productividad': ' Áreas sin productividad',
+  ' Areas de pastoreo extensivo': ' Áreas de pastoreo extensivo',
+  'Areas de cultivo del distrito': 'Áreas de cultivo del distrito',
+  '                                                    Maiz': '                                                    Maíz',
+  'las área de riego': 'las áreas de riego',
+  'la ganadería de crianza de toro engordado y cuyes son la más importante': 'la crianza de toros engordados y cuyes es la más importante',
+  'Quiquijana esta considerado': 'Quiquijana está considerado',
+  'Callatiac existia': 'Callatiac existía',
+  'Lines y ruedas de Hayuni': 'Líneas y ruedas de Hayuni',
+  'transporte, restaurant\n    entre otros': 'transporte, restaurantes\n    entre otros',
+  'DIMENSION AMBIENTAL': 'DIMENSIÓN AMBIENTAL',
+  'Modifiacion del Reglamento': 'Modificación del Reglamento',
+  'Presupuesto Analitico de Personal': 'Presupuesto Analítico de Personal'
+};
+
+const correctedTitles: Record<number, string> = {
+  4: 'II.1. Principios',
+  10: 'Página 10',
+  11: 'Página 11',
+  19: 'Página 19',
+  20: 'Página 20',
+  30: 'VI. Dimensión Económica',
+  35: '2. Diversificación Productiva y Fortalecimiento de Cadenas de Valor (Agropecuaria)',
+  38: 'VII. Dimensión Ambiental',
+  45: 'IX. Propuesta de rendición de cuentas',
+  50: 'II. Visión del plan de gobierno',
+  52: 'Dimensión Económica',
+  53: 'Dimensión Ambiental'
+};
+
+function correctPlanText(text: string) {
+  return Object.entries(contentCorrections).reduce(
+    (corrected, [incorrect, replacement]) => corrected.split(incorrect).join(replacement),
+    text
+  );
+}
+
+export const governmentPlanPages = rawGovernmentPlanPages.map(page => ({
+  ...page,
+  title: correctedTitles[page.page] ?? page.title,
+  text: correctPlanText(page.text)
+}));

@@ -3,6 +3,7 @@ import compression from 'compression';
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
+import { Redis } from 'ioredis';
 import helmet from 'helmet';
 import multer from 'multer';
 import fs from 'node:fs/promises';
@@ -10,13 +11,41 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import sharp from 'sharp';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { RedisStore, type RedisReply } from 'rate-limit-redis';
 import { z } from 'zod';
 
 const app = express();
 const prisma = new PrismaClient();
 const port = Number(process.env.PORT ?? 4000);
 const uploadDir = path.resolve(process.env.UPLOAD_DIR ?? 'uploads');
+const redisUrl = process.env.REDIS_URL;
+const redisRequired = process.env.REDIS_REQUIRED === 'true';
+const projectLockMs = Number(process.env.PROJECT_LOCK_MS ?? 300000);
 await fs.mkdir(uploadDir, { recursive: true });
+
+let redis: Redis | null = null;
+if (redisUrl) {
+  const client = new Redis(redisUrl, {
+    lazyConnect: true,
+    maxRetriesPerRequest: 2,
+    enableReadyCheck: true
+  });
+
+  client.on('error', error => {
+    console.error('Redis error:', error.message);
+  });
+
+  try {
+    await client.connect();
+    redis = client;
+    console.log('Redis connected');
+  } catch (error) {
+    if (redisRequired) throw error;
+    console.warn('Redis unavailable; using in-memory rate limits and project locks are disabled.');
+    client.disconnect();
+    redis = null;
+  }
+}
 
 class HttpError extends Error {
   constructor(public status: number, message: string) {
@@ -44,10 +73,58 @@ const projectSchema = z.object({
   config: z.record(z.string(), z.unknown()).optional()
 }).strict();
 
-const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+const corsOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173,http://localhost:4173')
   .split(',')
   .map(origin => origin.trim())
   .filter(Boolean);
+
+function isRedisReady() {
+  return redis?.status === 'ready';
+}
+
+function originMatchesPattern(origin: string, pattern: string) {
+  if (pattern === '*') return true;
+  if (!pattern.includes('*')) return origin === pattern;
+
+  const escaped = pattern
+    .split('*')
+    .map(part => part.replace(/[|\\{}()[\]^$+?.]/g, '\\$&'))
+    .join('.*');
+
+  return new RegExp(`^${escaped}$`).test(origin);
+}
+
+function corsOrigin(origin: string | undefined, callback: (error: Error | null, allow?: boolean) => void) {
+  if (!origin || corsOrigins.some(pattern => originMatchesPattern(origin, pattern))) {
+    callback(null, true);
+    return;
+  }
+
+  callback(new HttpError(403, 'Origen no permitido por CORS'));
+}
+
+async function withProjectLock<T>(projectId: string, action: () => Promise<T>) {
+  if (!redis || !isRedisReady()) return action();
+
+  const key = `flayer:project-lock:${projectId}`;
+  const token = randomUUID();
+  const acquired = await redis.set(key, token, 'PX', projectLockMs, 'NX');
+
+  if (acquired !== 'OK') {
+    throw new HttpError(409, 'Este proyecto se esta guardando en otra sesion. Intenta nuevamente en unos segundos.');
+  }
+
+  try {
+    return await action();
+  } finally {
+    await redis.eval(
+      'if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end',
+      1,
+      key,
+      token
+    ).catch(() => undefined);
+  }
+}
 
 app.disable('x-powered-by');
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -56,9 +133,17 @@ app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 300,
   standardHeaders: 'draft-8',
-  legacyHeaders: false
+  legacyHeaders: false,
+  ...(redis && isRedisReady()
+    ? {
+        store: new RedisStore({
+          prefix: 'flayer:rate-limit:',
+          sendCommand: (command: string, ...args: string[]) => redis!.call(command, ...args) as Promise<RedisReply>
+        })
+      }
+    : {})
 }));
-app.use(cors({ origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins }));
+app.use(cors({ origin: corsOrigins.includes('*') ? true : corsOrigin }));
 app.use(express.json({ limit: '2mb' }));
 app.use('/uploads', express.static(uploadDir));
 
@@ -110,7 +195,17 @@ function projectData(body: unknown) {
   };
 }
 
-app.get('/api/health', (_req, res) => res.json({ ok: true }));
+app.get('/api/health', async (_req, res) => {
+  const database = await prisma.$queryRaw`SELECT 1`
+    .then(() => 'ok')
+    .catch(() => 'error');
+  const cache = redis ? (isRedisReady() ? 'ok' : 'error') : 'disabled';
+
+  res.status(database === 'ok' && cache !== 'error' ? 200 : 503).json({
+    ok: database === 'ok' && cache !== 'error',
+    services: { database, redis: cache }
+  });
+});
 
 app.get('/api/projects', async (_req, res) => {
   const projects = await prisma.project.findMany({
@@ -153,9 +248,11 @@ app.patch('/api/projects/:id', async (req, res) => {
     throw new HttpError(409, 'Crea un proyecto separado para otra plantilla');
   }
 
-  const project = await prisma.project.update({
-    where: { id: existing.id },
-    data: projectData({ ...data, format: existing.format })
+  const project = await withProjectLock(existing.id, () => {
+    return prisma.project.update({
+      where: { id: existing.id },
+      data: projectData({ ...data, format: existing.format })
+    });
   });
 
   res.json(project);
@@ -175,9 +272,10 @@ app.post('/api/projects/:id/assets', async (req, res, next) => {
     res.status(400).json({ error: 'Falta el archivo' });
     return;
   }
+  const uploadedFile = req.file;
 
   try {
-    const isImage = req.file.mimetype.startsWith('image/');
+    const isImage = uploadedFile.mimetype.startsWith('image/');
     const projectFormat = String(res.locals.projectFormat);
 
     if ((projectFormat === 'facebook' && !isImage) || (projectFormat === 'tiktok' && isImage)) {
@@ -187,27 +285,29 @@ app.post('/api/projects/:id/assets', async (req, res, next) => {
     let metadata: { width?: number; height?: number } = {};
     if (isImage) {
       try {
-        metadata = await sharp(req.file.path, { limitInputPixels: 40000000 }).metadata();
+        metadata = await sharp(uploadedFile.path, { limitInputPixels: 40000000 }).metadata();
       } catch {
         throw new HttpError(422, 'Imagen danada o demasiado grande');
       }
     }
 
-    const asset = await prisma.asset.create({
-      data: {
-        projectId: String(req.params.id),
-        kind: isImage ? 'image' : 'video',
-        filename: req.file.originalname,
-        mimeType: req.file.mimetype,
-        url: `/uploads/${req.file.filename}`,
-        width: metadata.width,
-        height: metadata.height
-      }
+    const asset = await withProjectLock(String(req.params.id), () => {
+      return prisma.asset.create({
+        data: {
+          projectId: String(req.params.id),
+          kind: isImage ? 'image' : 'video',
+          filename: uploadedFile.originalname,
+          mimeType: uploadedFile.mimetype,
+          url: `/uploads/${uploadedFile.filename}`,
+          width: metadata.width,
+          height: metadata.height
+        }
+      });
     });
 
     res.status(201).json(asset);
   } catch (error) {
-    await fs.unlink(req.file.path).catch(() => undefined);
+    await fs.unlink(uploadedFile.path).catch(() => undefined);
     throw error;
   }
 });
@@ -253,6 +353,7 @@ server.on('error', (error) => {
 const shutdown = async (signal: string) => {
   console.log(`Received ${signal}, shutting down Flayer API...`);
   server.close(async () => {
+    if (redis) redis.disconnect();
     await prisma.$disconnect();
     process.exit(0);
   });

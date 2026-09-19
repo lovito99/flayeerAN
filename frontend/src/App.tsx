@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, PointerEvent } from 'react';
-import { ArrowLeft, CheckCircle2, Clapperboard, Download, FileText, ImagePlus, LayoutTemplate, Megaphone, Palette, Share2, Sparkles, Upload, WandSparkles } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clapperboard, Download, FileText, ImagePlus, LayoutTemplate, Megaphone, Palette, Share2, Sparkles, Upload, WandSparkles, X } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa6';
 import { assetUrl, saveProject as saveProjectRequest, uploadProjectAsset } from '@/api';
 import { CASCO_ICON, STYLE_OPTIONS, TEMPLATES } from '@/config';
@@ -42,6 +42,7 @@ function App() {
   const [exporting, setExporting] = useState(false);
   const [notice, setNotice] = useState('Cambios sin guardar');
   const [error, setError] = useState('');
+  const [mobileModal, setMobileModal] = useState<'design' | 'content' | null>(null);
 
   const posterRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -291,11 +292,25 @@ function App() {
           <div className="welcome-actions">
             <button type="button" onClick={() => startTemplate('facebook')}>
               <ImagePlus size={22} />
-              <span><strong>Editar imagen</strong><small>Flyer para Facebook y WhatsApp</small></span>
+              <span>
+                <strong>Editar imagen</strong>
+                <small>Flyer para Facebook y WhatsApp</small>
+                <span className="action-platforms" aria-label="Redes para imagen">
+                  <span className="platform-badge social-facebook"><FaFacebookF /></span>
+                  <span className="platform-badge social-whatsapp"><FaWhatsapp /></span>
+                </span>
+              </span>
             </button>
             <button type="button" onClick={() => startTemplate('tiktok')}>
               <Clapperboard size={22} />
-              <span><strong>Editar video</strong><small>Reels, TikTok y cuentas personales</small></span>
+              <span>
+                <strong>Editar video</strong>
+                <small>Video para TikTok y Facebook</small>
+                <span className="action-platforms" aria-label="Redes para video">
+                  <span className="platform-badge social-tiktok"><FaTiktok /></span>
+                  <span className="platform-badge social-facebook"><FaFacebookF /></span>
+                </span>
+              </span>
             </button>
             <button type="button" onClick={openPlan}>
               <FileText size={22} />
@@ -304,20 +319,28 @@ function App() {
           </div>
 
           <div className="welcome-note">
-            <span>Difundir con una identidad visual consistente ayuda a que el mensaje se reconozca, se comparta y sume fuerza a la campana electoral.</span>
+            <strong>Antes de empezar</strong>
+            <span>Elige imagen, video o plan. El editor mantiene el estilo de campana listo para publicar.</span>
           </div>
 
-          <div className="welcome-benefits" aria-label="Beneficios del editor">
-            <span><Megaphone size={16} /> Mensaje claro</span>
-            <span><Share2 size={16} /> Listo para compartir</span>
-            <span><CheckCircle2 size={16} /> Linea grafica uniforme</span>
-          </div>
-
-          <div className="welcome-socials" aria-label="Canales recomendados">
-            <span className="social-whatsapp"><FaWhatsapp /> WhatsApp</span>
-            <span className="social-facebook"><FaFacebookF /> Facebook</span>
-            <span className="social-tiktok"><FaTiktok /> TikTok</span>
-            <span className="social-instagram"><FaInstagram /> Reels</span>
+          <div className="welcome-support">
+            <div>
+              <span className="support-label">Que incluye</span>
+              <div className="welcome-benefits" aria-label="Beneficios del editor">
+                <span><Megaphone size={16} /> Mensaje claro</span>
+                <span><Share2 size={16} /> Listo para compartir</span>
+                <span><CheckCircle2 size={16} /> Linea grafica uniforme</span>
+              </div>
+            </div>
+            <div>
+              <span className="support-label">Canales de publicacion</span>
+              <div className="welcome-socials" aria-label="Canales recomendados">
+                <span className="social-whatsapp"><FaWhatsapp /> WhatsApp</span>
+                <span className="social-facebook"><FaFacebookF /> Facebook</span>
+                <span className="social-tiktok"><FaTiktok /> TikTok</span>
+                <span className="social-instagram"><FaInstagram /> Reels</span>
+              </div>
+            </div>
           </div>
         </section>
       </main>
@@ -343,7 +366,10 @@ function App() {
 
       <section className="workspace">
         <fieldset className="editor-fields" disabled={saving || exporting}>
-          <aside className="sidebar left-panel">
+          {mobileModal && <button className="mobile-modal-backdrop" type="button" aria-label="Cerrar panel" onClick={() => setMobileModal(null)} />}
+
+          <aside className={`sidebar left-panel ${mobileModal === 'design' ? 'mobile-modal-open' : ''}`}>
+            <button className="mobile-modal-close" type="button" aria-label="Cerrar estilos" onClick={() => setMobileModal(null)}><X size={18} /></button>
             <div className="eyebrow">01 / lienzo</div>
             <h1>Crea algo<br /><em>que importe.</em></h1>
             <p className="intro">Un editor ligero para convertir una idea en un flyer listo para compartir.</p>
@@ -385,6 +411,10 @@ function App() {
           </aside>
 
           <section className="canvas-area">
+            <div className="mobile-editor-actions" aria-label="Controles del editor">
+              <button type="button" onClick={() => setMobileModal('design')}><Palette size={16} /> Estilo</button>
+              <button type="button" onClick={() => setMobileModal('content')}><LayoutTemplate size={16} /> Editar contenido</button>
+            </div>
             <div className="canvas-head"><span><ImagePlus size={14} /> Vista previa</span><span className="canvas-size">{template.ratio} - {template.width} x {template.height}</span></div>
             {format === 'facebook' ? (
               <FacebookFlyer
@@ -428,7 +458,8 @@ function App() {
             )}
           </section>
 
-          <aside className="sidebar right-panel">
+          <aside className={`sidebar right-panel ${mobileModal === 'content' ? 'mobile-modal-open' : ''}`}>
+            <button className="mobile-modal-close" type="button" aria-label="Cerrar edición de contenido" onClick={() => setMobileModal(null)}><X size={18} /></button>
             <div className="eyebrow">02 / contenido</div>
             <div className="panel-title"><h2>Tu composicion</h2><span className="count">{format === 'tiktok' ? 'TikTok' : 'Facebook'}</span></div>
             <div className="input-group"><label>Titular</label><input maxLength={70} value={title} onChange={event => setTitle(event.target.value)} /></div>

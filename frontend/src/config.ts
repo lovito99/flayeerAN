@@ -1,6 +1,13 @@
 import type { Format, StyleOption, Template } from '@/types';
 
-export const CASCO_ICON = '/casco-an.jpg';
+const appBasePath = import.meta.env.BASE_URL;
+const apiUrl = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/$/, '');
+
+function publicAsset(path: string) {
+  return `${appBasePath}${path.replace(/^\//, '')}`;
+}
+
+export const CASCO_ICON = publicAsset('casco-an.jpg');
 
 export const CASCOS = [
   'Gobernador regional',
@@ -9,7 +16,7 @@ export const CASCOS = [
   'Alcalde distrital'
 ];
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+export const API_URL = apiUrl;
 
 export const TEMPLATES: Record<Format, Template> = {
   facebook: {
