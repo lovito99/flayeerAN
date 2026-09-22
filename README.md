@@ -26,10 +26,10 @@ sudo apt update && sudo apt upgrade -y
 sudo apt-get install -y git curl wget unzip build-essential nginx ca-certificates
 ```
 
-Instala Node.js 20 y verifica versiones:
+Instala Node.js 24 y verifica versiones:
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -
 sudo apt-get install -y nodejs
 node -v
 npm -v
