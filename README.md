@@ -57,8 +57,15 @@ Vite usa `@vitejs/plugin-react` y `vite-tsconfig-paths` para React y aliases `@/
 Antes de iniciar, clona el repositorio y entra a la carpeta del proyecto:
 
 ```powershell
-git clone <URL_DEL_REPOSITORIO> flayeerAN
+git clone https://github.com/lovito99/flayeerAN.git flayeerAN
 Set-Location flayeerAN
+```
+
+En Linux:
+
+```bash
+git clone https://github.com/lovito99/flayeerAN.git flayeerAN
+cd flayeerAN
 ```
 
 Si ya tienes el proyecto clonado, actualiza la rama antes de instalar o compilar:
@@ -166,10 +173,10 @@ En desarrollo usa `backend/.env` con valores locales. Para produccion, copia `ba
 ```env
 # Produccion - Backend publico
 PORT=4000
-APP_BASE_URL="https://api.tu-dominio.com"
+APP_BASE_URL="https://api.ahoranacion.online"
 
 # Produccion - Frontend permitido por CORS
-FRONTEND_BASE_URL="https://tu-dominio.com"
+FRONTEND_BASE_URL="https://ahoranacion.online"
 
 # Produccion - PostgreSQL
 DATABASE_URL="postgresql://USUARIO:CLAVE@HOST:5432/BASE_DE_DATOS?schema=public"
@@ -274,16 +281,14 @@ En desarrollo usa `frontend/.env` con valores locales. Para produccion, copia `f
 
 ```env
 # Produccion - Backend usado por el navegador
-# Deja vacio si Nginx publica /api y /uploads bajo el mismo dominio del frontend.
-# Usa https://api.tu-dominio.com si backend y frontend estan en dominios separados.
-VITE_API_URL=
+# Backend y frontend usan dominios separados en produccion.
+VITE_API_URL=https://api.ahoranacion.online
 
 # Produccion - Ruta base donde se publica el frontend
 VITE_BASE_PATH=/
 ```
 
-- Deja `VITE_API_URL=` vacio si frontend y backend salen por el mismo dominio y tu proxy redirige `/api` y `/uploads` al backend.
-- Define `VITE_API_URL=https://api.tu-dominio.com` si el backend vive en otro dominio.
+- Define `VITE_API_URL=https://api.ahoranacion.online` porque el backend vive en el subdominio `api`.
 - Cambia `VITE_BASE_PATH=/subcarpeta/` si publicas el frontend dentro de una ruta y no en la raiz del dominio.
 
 Estas variables se leen durante el build de Vite. Si cambias `frontend/.env`, vuelve a ejecutar `npm --prefix frontend run build` antes de recargar PM2.
@@ -370,42 +375,45 @@ Copia y ejecuta el comando que imprime `pm2 startup`.
 
 En un servidor publico conviene poner Nginx, Apache o Caddy delante para HTTPS y proxy hacia `localhost:4173` y `localhost:4000`.
 
-Ejemplo conceptual de proxy con un solo dominio:
+DNS esperado para `ahoranacion.online`:
 
 ```text
-https://tu-dominio.com/          -> frontend en localhost:4173
-https://tu-dominio.com/api       -> backend en localhost:4000/api
-https://tu-dominio.com/uploads   -> backend en localhost:4000/uploads
+ahoranacion.online       A      34.132.12.127
+api.ahoranacion.online   A      34.132.12.127
+www.ahoranacion.online   CNAME  ahoranacion.online.
 ```
 
-Con esa forma, el frontend debe compilarse con `VITE_API_URL=` y el backend debe usar `FRONTEND_BASE_URL=https://tu-dominio.com`.
+Ejemplo conceptual del proxy:
 
-### Nginx con un solo dominio
+```text
+https://ahoranacion.online/      -> frontend en localhost:4173
+https://www.ahoranacion.online/  -> frontend en localhost:4173
+https://api.ahoranacion.online/  -> backend en localhost:4000
+```
 
-Ejemplo para publicar frontend, API y archivos subidos bajo el mismo dominio:
+Con esa forma, el frontend debe compilarse con `VITE_API_URL=https://api.ahoranacion.online` y el backend debe usar `FRONTEND_BASE_URL=https://ahoranacion.online`.
+
+### Nginx
+
+Ejemplo para publicar frontend y backend con dominios separados:
 
 ```nginx
 server {
-  server_name tu-dominio.com www.tu-dominio.com;
+  server_name api.ahoranacion.online;
   client_max_body_size 100M;
 
-  location /api/ {
-    proxy_pass http://127.0.0.1:4000/api/;
+  location / {
+    proxy_pass http://127.0.0.1:4000;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   }
+}
 
-  location /uploads/ {
-    proxy_pass http://127.0.0.1:4000/uploads/;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-  }
+server {
+  server_name ahoranacion.online www.ahoranacion.online;
 
   location / {
     proxy_pass http://127.0.0.1:4173;
@@ -418,9 +426,10 @@ server {
 }
 ```
 
-Habilita el sitio y recarga Nginx:
+Crea el archivo en `/etc/nginx/sites-available/flayeerAN`, habilita el sitio y recarga Nginx:
 
 ```bash
+sudo nano /etc/nginx/sites-available/flayeerAN
 sudo ln -s /etc/nginx/sites-available/flayeerAN /etc/nginx/sites-enabled/flayeerAN
 sudo nginx -t
 sudo systemctl reload nginx
@@ -430,22 +439,20 @@ Para HTTPS:
 
 ```bash
 sudo snap install --classic certbot
-sudo certbot --nginx
+sudo certbot --nginx -d ahoranacion.online -d www.ahoranacion.online -d api.ahoranacion.online
 ```
 
 Con este proxy, usa estos valores de produccion:
 
 ```env
 # backend/.env
-APP_BASE_URL="https://tu-dominio.com"
-FRONTEND_BASE_URL="https://tu-dominio.com"
+APP_BASE_URL="https://api.ahoranacion.online"
+FRONTEND_BASE_URL="https://ahoranacion.online"
 
 # frontend/.env
-VITE_API_URL=
+VITE_API_URL=https://api.ahoranacion.online
 VITE_BASE_PATH=/
 ```
-
-Si usas subdominios separados, por ejemplo `api.tu-dominio.com` y `app.tu-dominio.com`, compila el frontend con `VITE_API_URL=https://api.tu-dominio.com` y configura `FRONTEND_BASE_URL=https://app.tu-dominio.com`.
 
 ### Funciones de la interfaz
 
