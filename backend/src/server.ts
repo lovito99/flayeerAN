@@ -36,7 +36,6 @@ function csv(value: string | undefined) {
 
 const appBaseUrl = cleanUrl(process.env.APP_BASE_URL) || `http://localhost:${port}`;
 const frontendBaseUrl = cleanUrl(process.env.FRONTEND_BASE_URL);
-const frontendPreviewUrl = cleanUrl(process.env.FRONTEND_PREVIEW_URL);
 
 let redis: Redis | null = null;
 if (redisUrl) {
@@ -88,7 +87,7 @@ const projectSchema = z.object({
   config: z.record(z.string(), z.unknown()).optional()
 }).strict();
 
-const corsOrigins = csv(process.env.CORS_ORIGIN || [frontendBaseUrl, frontendPreviewUrl].filter(Boolean).join(','));
+const corsOrigins = csv(frontendBaseUrl);
 
 function isRedisReady() {
   return redis?.status === 'ready';

@@ -84,12 +84,44 @@ Desde la raiz del proyecto:
 
 ```powershell
 npm run install:all
-Copy-Item backend/.env.example backend/.env
-Copy-Item frontend/.env.example frontend/.env
 docker compose up -d
 npm run db:generate
 npm run db:push
 npm run dev
+```
+
+Antes de `npm run dev`, crea estos archivos `.env` de desarrollo.
+
+`backend/.env`:
+
+```env
+# Desarrollo - Backend
+PORT=4000
+APP_BASE_URL="http://localhost:4000"
+
+# Desarrollo - Frontend permitido por CORS
+FRONTEND_BASE_URL="http://localhost:5173"
+
+# Desarrollo - PostgreSQL Docker local
+DATABASE_URL="postgresql://flayer:flayer@localhost:5433/flayer?schema=public"
+
+# Desarrollo - Redis Docker local
+REDIS_URL="redis://localhost:6380"
+REDIS_REQUIRED=false
+PROJECT_LOCK_MS=300000
+
+# Desarrollo - Archivos subidos
+UPLOAD_DIR="uploads"
+```
+
+`frontend/.env`:
+
+```env
+# Desarrollo - Backend usado por el navegador
+VITE_API_URL=http://localhost:4000
+
+# Desarrollo - Ruta base del frontend
+VITE_BASE_PATH=/
 ```
 
 Luego abre:
@@ -129,40 +161,40 @@ Ubicacion: `backend/`
 
 ### Variables de entorno
 
-Copia `backend/.env.example` a `backend/.env`.
+En desarrollo usa `backend/.env` con valores locales. Para produccion, copia `backend/.env.example` a `backend/.env` en el servidor y reemplaza los placeholders.
 
 ```env
-# Backend
+# Produccion - Backend publico
 PORT=4000
-APP_BASE_URL="http://localhost:4000"
+APP_BASE_URL="https://api.tu-dominio.com"
 
-# Frontend permitido por CORS
-FRONTEND_BASE_URL="http://localhost:5173"
-FRONTEND_PREVIEW_URL="http://localhost:4173"
-CORS_ORIGIN="http://localhost:5173,http://localhost:4173"
+# Produccion - Frontend permitido por CORS
+FRONTEND_BASE_URL="https://tu-dominio.com"
 
-# PostgreSQL
-DATABASE_URL="postgresql://flayer:flayer@localhost:5433/flayer?schema=public"
+# Produccion - PostgreSQL
+DATABASE_URL="postgresql://USUARIO:CLAVE@HOST:5432/BASE_DE_DATOS?schema=public"
 
-# Redis
-REDIS_URL="redis://localhost:6380"
-REDIS_REQUIRED=false
+# Produccion - Redis
+# Sin clave: redis://HOST:6379
+# Con clave: redis://:CLAVE@HOST:6379
+REDIS_URL="redis://HOST:6379"
+REDIS_REQUIRED=true
 PROJECT_LOCK_MS=300000
 
-# Archivos subidos
-UPLOAD_DIR="uploads"
+# Produccion - Archivos subidos
+UPLOAD_DIR="/var/www/flayeerAN/uploads"
 ```
 
-Para produccion usa como base `backend/.env.production.example`. Ajusta:
+Ajusta:
 
 - `APP_BASE_URL` a la URL publica real del backend.
 - `FRONTEND_BASE_URL` a la URL publica real del frontend.
-- `FRONTEND_PREVIEW_URL` solo si sirves un preview adicional; en produccion normalmente puede quedar vacio.
-- `CORS_ORIGIN` al dominio real del frontend. Acepta varios valores separados por coma o `*` para permitir cualquier origen.
 - `DATABASE_URL` con usuario, clave, host, puerto y nombre real de PostgreSQL.
 - `REDIS_URL` con el host/puerto real de Redis. Si Redis tiene clave usa `redis://:CLAVE@HOST:PUERTO`.
 - `UPLOAD_DIR` a una ruta persistente si no quieres guardar archivos dentro de `backend/uploads`.
 - `REDIS_REQUIRED=true` si quieres que la API falle al iniciar cuando Redis no este disponible.
+
+El backend permite por CORS solo el valor de `FRONTEND_BASE_URL`. En desarrollo con Vite usa `http://localhost:5173`; si pruebas el build con PM2 preview local usa `http://localhost:4173`.
 
 ### Base de datos y Redis
 
@@ -238,17 +270,17 @@ Ubicacion: `frontend/`
 
 ### Variables de entorno
 
-Copia `frontend/.env.example` a `frontend/.env`.
+En desarrollo usa `frontend/.env` con valores locales. Para produccion, copia `frontend/.env.example` a `frontend/.env` antes de compilar y reemplaza lo necesario.
 
 ```env
-# Backend usado por el navegador en desarrollo
-VITE_API_URL=http://localhost:4000
+# Produccion - Backend usado por el navegador
+# Deja vacio si Nginx publica /api y /uploads bajo el mismo dominio del frontend.
+# Usa https://api.tu-dominio.com si backend y frontend estan en dominios separados.
+VITE_API_URL=
 
-# Ruta base donde se publica el frontend
+# Produccion - Ruta base donde se publica el frontend
 VITE_BASE_PATH=/
 ```
-
-Para produccion usa `frontend/.env.production.example` antes de compilar:
 
 - Deja `VITE_API_URL=` vacio si frontend y backend salen por el mismo dominio y tu proxy redirige `/api` y `/uploads` al backend.
 - Define `VITE_API_URL=https://api.tu-dominio.com` si el backend vive en otro dominio.
@@ -272,16 +304,16 @@ Estos pasos asumen que ya clonaste el proyecto en el servidor y estas dentro de 
 
 ```powershell
 Copy-Item .env.example .env
-Copy-Item backend/.env.production.example backend/.env
-Copy-Item frontend/.env.production.example frontend/.env
+Copy-Item backend/.env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env
 ```
 
 En Linux:
 
 ```bash
 cp .env.example .env
-cp backend/.env.production.example backend/.env
-cp frontend/.env.production.example frontend/.env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 nano .env
 nano backend/.env
 nano frontend/.env
@@ -346,7 +378,7 @@ https://tu-dominio.com/api       -> backend en localhost:4000/api
 https://tu-dominio.com/uploads   -> backend en localhost:4000/uploads
 ```
 
-Con esa forma, el frontend debe compilarse con `VITE_API_URL=` y el backend puede usar `CORS_ORIGIN=https://tu-dominio.com`.
+Con esa forma, el frontend debe compilarse con `VITE_API_URL=` y el backend debe usar `FRONTEND_BASE_URL=https://tu-dominio.com`.
 
 ### Nginx con un solo dominio
 
@@ -407,15 +439,13 @@ Con este proxy, usa estos valores de produccion:
 # backend/.env
 APP_BASE_URL="https://tu-dominio.com"
 FRONTEND_BASE_URL="https://tu-dominio.com"
-FRONTEND_PREVIEW_URL=
-CORS_ORIGIN="https://tu-dominio.com,https://www.tu-dominio.com"
 
 # frontend/.env
 VITE_API_URL=
 VITE_BASE_PATH=/
 ```
 
-Si usas subdominios separados, por ejemplo `api.tu-dominio.com` y `app.tu-dominio.com`, compila el frontend con `VITE_API_URL=https://api.tu-dominio.com` y configura `CORS_ORIGIN=https://app.tu-dominio.com`.
+Si usas subdominios separados, por ejemplo `api.tu-dominio.com` y `app.tu-dominio.com`, compila el frontend con `VITE_API_URL=https://api.tu-dominio.com` y configura `FRONTEND_BASE_URL=https://app.tu-dominio.com`.
 
 ### Funciones de la interfaz
 
