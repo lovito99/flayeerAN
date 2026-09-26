@@ -2,6 +2,7 @@ export type Format = 'facebook' | 'tiktok';
 export type Mode = 'minimal' | 'optimized' | 'diagonal' | 'editorial' | 'soft';
 
 export type Asset = {
+  id: string;
   url: string;
   kind: 'image' | 'video';
   filename: string;
@@ -15,6 +16,8 @@ export type Template = {
   ratio: string;
   accept: string;
   files: string;
+  maxSizeMb: number;
+  recommendation: string;
 };
 
 export type StyleOption = {

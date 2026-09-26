@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, PointerEvent } from 'react';
 import { ArrowLeft, CheckCircle2, Clapperboard, Download, FileText, ImagePlus, LayoutTemplate, Megaphone, Palette, Share2, Sparkles, Upload, WandSparkles, X } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa6';
-import { assetUrl, saveProject as saveProjectRequest, uploadProjectAsset } from '@/api';
+import { assetUrl, deleteProjectAsset, downloadAsset, saveProject as saveProjectRequest, uploadProjectAsset } from '@/api';
 import { CASCO_ICON, STYLE_OPTIONS, TEMPLATES } from '@/config';
 import { FacebookFlyer } from '@/flyers/facebook/FacebookFlyer';
 import { TiktokFlyer } from '@/flyers/tiktok/TiktokFlyer';
@@ -11,6 +11,28 @@ import type { Asset, Format, Mode } from '@/types';
 
 function clamp(value: number) {
   return Math.max(0, Math.min(100, value));
+}
+
+function fileSizeMb(file: File) {
+  return file.size / (1024 * 1024);
+}
+
+function videoMetadata(file: File) {
+  return new Promise<{ duration: number; width: number; height: number }>((resolve, reject) => {
+    const video = document.createElement('video');
+    const url = URL.createObjectURL(file);
+
+    video.preload = 'metadata';
+    video.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve({ duration: video.duration, width: video.videoWidth, height: video.videoHeight });
+    };
+    video.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('No se pudo leer el video. Prueba exportarlo como MP4 compatible.'));
+    };
+    video.src = url;
+  });
 }
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -46,6 +68,8 @@ function App() {
   const [frameSize, setFrameSize] = useState({ width: 0, height: 0 });
   const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
   const [exporting, setExporting] = useState(false);
   const [notice, setNotice] = useState('Cambios sin guardar');
   const [error, setError] = useState('');
@@ -117,12 +141,30 @@ function App() {
     if (busy.current || saving || exporting) return;
     fileRef.current?.click();
   };
-  const removeAsset = () => {
+  const removeAsset = async () => {
     if (busy.current || saving || exporting) return;
-    setAssets(previous => ({ ...previous, [format]: null }));
-    if (fileRef.current) fileRef.current.value = '';
-    setNotice('Archivo quitado; cambios sin guardar');
-    markDirty();
+    const currentAsset = assets[format];
+    const currentProjectId = projectId.current[format];
+
+    busy.current = true;
+    setSaving(true);
+    setError('');
+
+    try {
+      if (currentAsset && currentProjectId) {
+        await deleteProjectAsset(currentProjectId, currentAsset.id);
+      }
+
+      setAssets(previous => ({ ...previous, [format]: null }));
+      if (fileRef.current) fileRef.current.value = '';
+      setNotice('Archivo quitado');
+      markDirty();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'No se pudo quitar el archivo');
+    } finally {
+      busy.current = false;
+      setSaving(false);
+    }
   };
   const resetCrop = () => {
     setCrop({ x: 50, y: 50, zoom: 1.15 });
@@ -233,30 +275,42 @@ function App() {
   const uploadAsset = async (file: File) => {
     if (busy.current) return;
 
-    if (!template.accept.split(',').includes(file.type) || file.size > 100 * 1024 * 1024) {
-      setError(`Esta plantilla admite ${template.files} de hasta 100 MB.`);
+    if (!template.accept.split(',').includes(file.type) || fileSizeMb(file) > template.maxSizeMb) {
+      setError(`Esta plantilla admite ${template.files} de hasta ${template.maxSizeMb} MB.`);
       return;
     }
 
     busy.current = true;
     setSaving(true);
+    setUploadProgress(0);
     setError('');
 
     try {
+      if (format === 'tiktok') {
+        const metadata = await videoMetadata(file);
+        if (metadata.duration > 90) {
+          throw new Error('Usa un video de hasta 90 segundos para que la subida sea más rápida en celular.');
+        }
+        if (metadata.height < metadata.width) {
+          throw new Error('Usa un video vertical 9:16 para TikTok o Reels.');
+        }
+      }
+
       const id = await persist();
-      const uploaded = await uploadProjectAsset(id, file);
-      setAsset({ url: assetUrl(uploaded.url), kind: uploaded.kind, filename: uploaded.filename });
+      const uploaded = await uploadProjectAsset(id, file, setUploadProgress);
+      setAsset({ id: uploaded.id, url: assetUrl(uploaded.url), kind: uploaded.kind, filename: uploaded.filename });
       if (uploaded.kind === 'image') {
         resetCrop();
         setNotice('Archivo guardado; encuadre sin guardar');
       } else {
-        setNotice('Proyecto y archivo guardados');
+        setNotice('Video guardado');
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Error al subir el archivo');
     } finally {
       busy.current = false;
       setSaving(false);
+      window.setTimeout(() => setUploadProgress(null), 700);
       if (fileRef.current) fileRef.current.value = '';
     }
   };
@@ -295,6 +349,40 @@ function App() {
     } finally {
       busy.current = false;
       setExporting(false);
+    }
+  };
+
+  const downloadVideo = async () => {
+    if (!asset || asset.kind !== 'video' || format !== 'tiktok' || busy.current) return;
+    const currentProjectId = projectId.current[format];
+    if (!currentProjectId) return;
+
+    busy.current = true;
+    setExporting(true);
+    setDownloadProgress(0);
+    setError('');
+
+    try {
+      const blob = await downloadAsset(asset.url, setDownloadProgress);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = asset.filename || `${title.trim().replace(/[^a-zA-Z0-9_-]+/g, '-').slice(0, 70) || 'video'}-tiktok.mp4`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+
+      await deleteProjectAsset(currentProjectId, asset.id);
+      setAssets(previous => ({ ...previous, [format]: null }));
+      if (fileRef.current) fileRef.current.value = '';
+      setNotice(`Video descargado y eliminado: ${asset.filename}`);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'No se pudo descargar el video');
+    } finally {
+      busy.current = false;
+      setExporting(false);
+      window.setTimeout(() => setDownloadProgress(null), 700);
     }
   };
 
@@ -393,6 +481,7 @@ function App() {
           <span className="saved" role="status"><span className="status-dot" />{saving ? 'Guardando...' : notice}</span>
           <button className="save-button" disabled={saving || exporting} onClick={saveProject}>Guardar</button>
           {format === 'facebook' && <button className="publish" disabled={saving || exporting || !asset} onClick={exportFlyer}><Download size={16} />{exporting ? 'Generando PNG...' : 'Descargar PNG'}</button>}
+          {format === 'tiktok' && <button className="publish" disabled={saving || exporting || asset?.kind !== 'video'} onClick={downloadVideo}><Download size={16} />{downloadProgress !== null ? `Descargando ${downloadProgress}%` : 'Descargar video'}</button>}
         </div>
       </header>
 
@@ -509,9 +598,11 @@ function App() {
             <div className="asset-drop" role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); chooseAsset(); } }} onClick={chooseAsset}>
               <input ref={fileRef} type="file" hidden accept={template.accept} onChange={event => event.target.files?.[0] && uploadAsset(event.target.files[0])} />
               <div className="upload-icon">{saving ? <Sparkles size={20} /> : <Upload size={20} />}</div>
-              <strong>{saving ? 'Subiendo...' : asset ? 'Cambiar archivo' : format === 'facebook' ? 'Sube tu imagen' : 'Sube tu video'}</strong>
-              <span>{asset ? asset.filename : `${template.files} - máximo 100 MB`}</span>
+              <strong>{uploadProgress !== null ? `Subiendo ${uploadProgress}%` : saving ? 'Guardando...' : asset ? 'Cambiar archivo' : format === 'facebook' ? 'Sube tu imagen' : 'Sube tu video'}</strong>
+              <span>{asset ? asset.filename : `${template.files} - máximo ${template.maxSizeMb} MB`}</span>
+              {uploadProgress !== null && <span className="upload-progress"><span style={{ width: `${uploadProgress}%` }} /></span>}
             </div>
+            <p className="upload-advice">{template.recommendation}</p>
             {asset && <div className="input-group media-settings"><div className="asset-toolbar"><p className="asset-name">{asset.filename}</p><button type="button" onClick={removeAsset}>Quitar</button></div>{format === 'facebook' ? <>
               <p className="crop-hint">Arrastra la imagen para encuadrar.</p>
               <label htmlFor="zoom">Zoom {Math.round(crop.zoom * 100)}%</label><input id="zoom" type="range" min="1" max="3" step="0.01" value={crop.zoom} onChange={event => setCrop(previous => ({ ...previous, zoom: Number(event.target.value) }))} />

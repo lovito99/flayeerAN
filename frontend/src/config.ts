@@ -39,7 +39,9 @@ export const TEMPLATES: Record<Format, Template> = {
     height: 1350,
     ratio: '4:5',
     accept: 'image/jpeg,image/png,image/webp',
-    files: 'JPG, PNG o WebP'
+    files: 'JPG, PNG o WebP',
+    maxSizeMb: 15,
+    recommendation: 'Usa una imagen vertical, nítida y menor a 15 MB.'
   },
   tiktok: {
     label: 'Video para TikTok',
@@ -48,7 +50,9 @@ export const TEMPLATES: Record<Format, Template> = {
     height: 1920,
     ratio: '9:16',
     accept: 'video/mp4,video/webm',
-    files: 'MP4 o WebM'
+    files: 'MP4 o WebM',
+    maxSizeMb: 80,
+    recommendation: 'Usa MP4 vertical 9:16, con audio, menor a 80 MB y de preferencia menos de 60 segundos.'
   }
 };
 

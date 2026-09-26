@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { API_URL } from '@/config';
 import type { Crop, Format, Mode } from '@/types';
 
@@ -26,10 +27,25 @@ type ProjectResponse = {
 };
 
 type AssetResponse = {
+  id: string;
   url: string;
   kind: 'image' | 'video';
   filename: string;
 };
+
+function progressPercent(loaded: number, total?: number) {
+  if (!total) return null;
+  return Math.round((loaded / total) * 100);
+}
+
+function apiError(error: unknown, fallback: string) {
+  if (axios.isAxiosError(error)) {
+    const message = error.response?.data?.error;
+    if (typeof message === 'string') return new Error(message);
+  }
+
+  return error instanceof Error ? error : new Error(fallback);
+}
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, options);
@@ -59,14 +75,46 @@ export async function saveProject(params: SaveProjectParams) {
   });
 }
 
-export async function uploadProjectAsset(projectId: string, file: File) {
+export async function uploadProjectAsset(projectId: string, file: File, onProgress?: (progress: number) => void) {
   const data = new FormData();
   data.append('file', file);
 
-  return request<AssetResponse>(`${API_URL}/api/projects/${projectId}/assets`, {
-    method: 'POST',
-    body: data
+  try {
+    const response = await axios.post<AssetResponse>(`${API_URL}/api/projects/${projectId}/assets`, data, {
+      onUploadProgress: event => {
+        const percent = progressPercent(event.loaded, event.total);
+        if (percent !== null) onProgress?.(percent);
+      }
+    });
+
+    onProgress?.(100);
+    return response.data;
+  } catch (error) {
+    throw apiError(error, 'No se pudo subir el archivo');
+  }
+}
+
+export async function deleteProjectAsset(projectId: string, assetId: string) {
+  await request<{ ok: true }>(`${API_URL}/api/projects/${projectId}/assets/${assetId}`, {
+    method: 'DELETE'
   });
+}
+
+export async function downloadAsset(url: string, onProgress?: (progress: number) => void) {
+  try {
+    const response = await axios.get<Blob>(url, {
+      responseType: 'blob',
+      onDownloadProgress: event => {
+        const percent = progressPercent(event.loaded, event.total);
+        if (percent !== null) onProgress?.(percent);
+      }
+    });
+
+    onProgress?.(100);
+    return response.data;
+  } catch (error) {
+    throw apiError(error, 'No se pudo descargar el archivo');
+  }
 }
 
 export function assetUrl(path: string) {

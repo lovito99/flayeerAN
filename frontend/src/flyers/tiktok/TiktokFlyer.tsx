@@ -36,7 +36,7 @@ export function TiktokFlyer(props: Props) {
     <div ref={props.posterRef} className={`poster tiktok-flyer ${props.mode}`} style={{ '--accent': props.accent, '--position': `${props.position}%` } as CSSProperties}>
       <div className="video-frame">
         {props.asset?.kind === 'video' ? (
-          <video src={props.asset.url} onError={props.onVideoError} autoPlay muted loop playsInline preload="metadata" />
+          <video src={props.asset.url} onError={props.onVideoError} controls controlsList="nodownload" loop playsInline preload="metadata" />
         ) : (
           <button className="poster-placeholder poster-upload-button" type="button" onClick={props.onSelectAsset}>
             <ImagePlus size={32} />

@@ -75,6 +75,8 @@ const acceptedMime = {
   'video/webm': '.webm'
 } as const;
 
+const maxUploadBytes = 100 * 1024 * 1024;
+
 const formats = ['facebook', 'tiktok', 'story'] as const;
 const modes = ['minimal', 'optimized', 'diagonal', 'editorial', 'soft'] as const;
 
@@ -137,6 +139,18 @@ async function withProjectLock<T>(projectId: string, action: () => Promise<T>) {
   }
 }
 
+function uploadPathFromUrl(url: string) {
+  const filename = path.basename(url);
+  if (!filename || filename === '.' || filename === '..') return null;
+  return path.join(uploadDir, filename);
+}
+
+async function deleteUploadedAssetFile(url: string) {
+  const filePath = uploadPathFromUrl(url);
+  if (!filePath) return;
+  await fs.unlink(filePath).catch(() => undefined);
+}
+
 app.disable('x-powered-by');
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(compression());
@@ -166,7 +180,7 @@ const upload = multer({
       callback(null, `${randomUUID()}${extension}`);
     }
   }),
-  limits: { fileSize: 100 * 1024 * 1024 },
+  limits: { fileSize: maxUploadBytes },
   fileFilter: (_req, file, callback) => {
     if (!(file.mimetype in acceptedMime)) {
       callback(new HttpError(415, 'Usa JPG, PNG, WebP, MP4 o WebM'));
@@ -303,25 +317,65 @@ app.post('/api/projects/:id/assets', async (req, res, next) => {
       }
     }
 
-    const asset = await withProjectLock(String(req.params.id), () => {
-      return prisma.asset.create({
-        data: {
-          projectId: String(req.params.id),
-          kind: isImage ? 'image' : 'video',
-          filename: uploadedFile.originalname,
-          mimeType: uploadedFile.mimetype,
-          url: `/uploads/${uploadedFile.filename}`,
-          width: metadata.width,
-          height: metadata.height
-        }
+    const projectId = String(req.params.id);
+    const kind = isImage ? 'image' : 'video';
+    const previousAssets: { url: string }[] = [];
+
+    const asset = await withProjectLock(projectId, async () => {
+      const existing = await prisma.asset.findMany({
+        where: { projectId, kind },
+        select: { id: true, url: true }
       });
+
+      const created = await prisma.$transaction(async tx => {
+        const newAsset = await tx.asset.create({
+          data: {
+            projectId,
+            kind,
+            filename: uploadedFile.originalname,
+            mimeType: uploadedFile.mimetype,
+            url: `/uploads/${uploadedFile.filename}`,
+            width: metadata.width,
+            height: metadata.height
+          }
+        });
+
+        if (existing.length) {
+          await tx.asset.deleteMany({ where: { id: { in: existing.map(asset => asset.id) } } });
+        }
+
+        return newAsset;
+      });
+
+      previousAssets.push(...existing.map(asset => ({ url: asset.url })));
+      return created;
     });
 
+    await Promise.all(previousAssets.map(asset => deleteUploadedAssetFile(asset.url)));
     res.status(201).json(asset);
   } catch (error) {
     await fs.unlink(uploadedFile.path).catch(() => undefined);
     throw error;
   }
+});
+
+app.delete('/api/projects/:projectId/assets/:assetId', async (req, res) => {
+  const projectId = String(req.params.projectId);
+  const assetId = String(req.params.assetId);
+
+  const asset = await prisma.asset.findFirst({
+    where: { id: assetId, projectId },
+    select: { id: true, url: true }
+  });
+
+  if (!asset) throw new HttpError(404, 'Archivo no encontrado');
+
+  await withProjectLock(projectId, async () => {
+    await prisma.asset.delete({ where: { id: asset.id } });
+  });
+  await deleteUploadedAssetFile(asset.url);
+
+  res.json({ ok: true });
 });
 
 app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
