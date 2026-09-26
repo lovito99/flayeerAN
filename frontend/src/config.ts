@@ -1,7 +1,20 @@
 import type { Format, StyleOption, Template } from '@/types';
 
 const appBasePath = import.meta.env.BASE_URL;
-const apiUrl = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/$/, '');
+const configuredApiUrl = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/$/, '');
+
+function defaultApiUrl() {
+  if (typeof window === 'undefined') return '';
+
+  const { hostname, protocol } = window.location;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') return 'http://localhost:4000';
+  if (hostname.startsWith('api.')) return `${protocol}//${hostname}`;
+
+  const rootDomain = hostname.startsWith('www.') ? hostname.slice(4) : hostname;
+  return `${protocol}//api.${rootDomain}`;
+}
+
+const apiUrl = configuredApiUrl || defaultApiUrl();
 
 function publicAsset(path: string) {
   return `${appBasePath}${path.replace(/^\//, '')}`;
