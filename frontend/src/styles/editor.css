@@ -192,6 +192,29 @@
 }
 .asset-name, .crop-hint { color: #69716a; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
 .media-settings { margin-top: 18px; }
+.asset-toolbar {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.asset-toolbar .asset-name {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.asset-toolbar button {
+  border: 1px solid color-mix(in srgb, var(--danger-red) 24%, var(--line));
+  border-radius: 6px;
+  background: #fff;
+  color: var(--danger-red);
+  padding: 7px 9px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.asset-toolbar button:hover {
+  background: color-mix(in srgb, var(--danger-red) 8%, white);
+}
 .media-settings input[type="range"] {
   width: 100%;
   margin: 0 0 16px;

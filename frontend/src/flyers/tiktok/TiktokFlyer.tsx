@@ -11,6 +11,8 @@ type Props = {
   district: string;
   honorific: string;
   mode: Mode;
+  onRemoveAsset: () => void;
+  onSelectAsset: () => void;
   onVideoError: () => void;
   position: number;
   posterRef: RefObject<HTMLDivElement | null>;
@@ -36,9 +38,20 @@ export function TiktokFlyer(props: Props) {
         {props.asset?.kind === 'video' ? (
           <video src={props.asset.url} onError={props.onVideoError} autoPlay muted loop playsInline preload="metadata" />
         ) : (
-          <div className="poster-placeholder"><ImagePlus size={32} /><span>Añade un video para TikTok</span></div>
+          <button className="poster-placeholder poster-upload-button" type="button" onClick={props.onSelectAsset}>
+            <ImagePlus size={32} />
+            <span>Añade un video para TikTok</span>
+            <small>MP4 o WebM</small>
+          </button>
         )}
       </div>
+
+      {props.asset?.kind === 'video' && (
+        <div className="poster-media-actions" data-export-ignore="true">
+          <button type="button" onClick={props.onSelectAsset}>Cambiar</button>
+          <button type="button" onClick={props.onRemoveAsset}>Quitar</button>
+        </div>
+      )}
 
       <div className="video-topbar">
         <div className="header-mark">

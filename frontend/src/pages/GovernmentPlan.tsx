@@ -121,9 +121,8 @@ function parsePlanPage(text: string) {
   return blocks;
 }
 
-function PlanPageContent({ text, hasFigure }: { text: string; hasFigure: boolean }) {
+function PlanPageContent({ text }: { text: string }) {
   const blocks = parsePlanPage(text).filter(block => {
-    if (!hasFigure) return true;
     return block.type !== 'caption' && block.type !== 'table';
   });
 
@@ -310,7 +309,7 @@ export function GovernmentPlan({ onBack, onCreateVideo }: GovernmentPlanProps) {
                   <figcaption>{figureByPage.get(page.page)?.description}</figcaption>
                 </figure>
               )}
-              <PlanPageContent text={page.text} hasFigure={figureByPage.has(page.page)} />
+              <PlanPageContent text={page.text} />
             </article>
           ))}
         </div>

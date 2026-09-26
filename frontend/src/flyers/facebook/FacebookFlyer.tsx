@@ -26,6 +26,8 @@ type Props = {
   onMove: (event: PointerEvent<HTMLDivElement>) => void;
   onMoveCancel: () => void;
   onMoveStart: (event: PointerEvent<HTMLDivElement>) => void;
+  onRemoveAsset: () => void;
+  onSelectAsset: () => void;
   posterRef: RefObject<HTMLDivElement | null>;
   role: string;
   subtitle: string;
@@ -74,7 +76,18 @@ export function FacebookFlyer(props: Props) {
           />
         </div>
       ) : (
-        <div className="poster-placeholder"><ImagePlus size={32} /><span>Añade una imagen para Facebook</span></div>
+        <button className="poster-placeholder poster-upload-button" type="button" onClick={props.onSelectAsset}>
+          <ImagePlus size={32} />
+          <span>Añade una imagen para Facebook</span>
+          <small>JPG, PNG o WebP</small>
+        </button>
+      )}
+
+      {props.asset?.kind === 'image' && (
+        <div className="poster-media-actions" data-export-ignore="true">
+          <button type="button" onClick={props.onSelectAsset}>Cambiar</button>
+          <button type="button" onClick={props.onRemoveAsset}>Quitar</button>
+        </div>
       )}
 
       <div className="header-badge">

@@ -113,6 +113,17 @@ function App() {
   };
   const setAsset = (value: Asset) => setAssets(previous => ({ ...previous, [format]: value }));
   const setPosition = (value: number) => setPositions(previous => ({ ...previous, [format]: value }));
+  const chooseAsset = () => {
+    if (busy.current || saving || exporting) return;
+    fileRef.current?.click();
+  };
+  const removeAsset = () => {
+    if (busy.current || saving || exporting) return;
+    setAssets(previous => ({ ...previous, [format]: null }));
+    if (fileRef.current) fileRef.current.value = '';
+    setNotice('Archivo quitado; cambios sin guardar');
+    markDirty();
+  };
   const resetCrop = () => {
     setCrop({ x: 50, y: 50, zoom: 1.15 });
     markDirty();
@@ -265,7 +276,8 @@ function App() {
         canvasHeight: template.height,
         pixelRatio: 1,
         preferredFontFormat: 'woff2',
-        style: { boxShadow: 'none' }
+        style: { boxShadow: 'none' },
+        filter: node => !(node instanceof HTMLElement && node.dataset.exportIgnore === 'true')
       });
 
       if (!blob) throw new Error('No se pudo generar la imagen');
@@ -455,6 +467,8 @@ function App() {
                 onMove={moveImage}
                 onMoveCancel={stopMove}
                 onMoveStart={startMove}
+                onRemoveAsset={removeAsset}
+                onSelectAsset={chooseAsset}
                 posterRef={posterRef}
                 role={role}
                 subtitle={subtitle}
@@ -469,6 +483,8 @@ function App() {
                 district={district}
                 honorific={honorific}
                 mode={mode}
+                onRemoveAsset={removeAsset}
+                onSelectAsset={chooseAsset}
                 onVideoError={() => setError('No se pudo reproducir el video. Prueba un MP4 compatible.')}
                 position={position}
                 posterRef={posterRef}
@@ -490,13 +506,13 @@ function App() {
             <div className="input-group"><label>Descripción</label><textarea maxLength={80} value={subtitle} onChange={event => setSubtitle(event.target.value)} rows={2} /></div>
             <div className="input-group"><label>Lema</label><input maxLength={80} value={tagline} onChange={event => setTagline(event.target.value)} /></div>
             <div className="input-group"><label>Distrito</label><input maxLength={45} value={district} onChange={event => setDistrict(event.target.value)} /></div>
-            <div className="asset-drop" role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fileRef.current?.click(); } }} onClick={() => fileRef.current?.click()}>
+            <div className="asset-drop" role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); chooseAsset(); } }} onClick={chooseAsset}>
               <input ref={fileRef} type="file" hidden accept={template.accept} onChange={event => event.target.files?.[0] && uploadAsset(event.target.files[0])} />
               <div className="upload-icon">{saving ? <Sparkles size={20} /> : <Upload size={20} />}</div>
-              <strong>{saving ? 'Subiendo...' : format === 'facebook' ? 'Sube tu imagen' : 'Sube tu video'}</strong>
-              <span>{template.files} - máximo 100 MB</span>
+              <strong>{saving ? 'Subiendo...' : asset ? 'Cambiar archivo' : format === 'facebook' ? 'Sube tu imagen' : 'Sube tu video'}</strong>
+              <span>{asset ? asset.filename : `${template.files} - máximo 100 MB`}</span>
             </div>
-            {asset && <div className="input-group media-settings"><p className="asset-name">{asset.filename}</p>{format === 'facebook' ? <>
+            {asset && <div className="input-group media-settings"><div className="asset-toolbar"><p className="asset-name">{asset.filename}</p><button type="button" onClick={removeAsset}>Quitar</button></div>{format === 'facebook' ? <>
               <p className="crop-hint">Arrastra la imagen para encuadrar.</p>
               <label htmlFor="zoom">Zoom {Math.round(crop.zoom * 100)}%</label><input id="zoom" type="range" min="1" max="3" step="0.01" value={crop.zoom} onChange={event => setCrop(previous => ({ ...previous, zoom: Number(event.target.value) }))} />
               <label htmlFor="crop-x">Horizontal</label><input id="crop-x" type="range" min="0" max="100" value={crop.x} onChange={event => setCrop(previous => ({ ...previous, x: Number(event.target.value) }))} />

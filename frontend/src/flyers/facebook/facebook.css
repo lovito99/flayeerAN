@@ -25,6 +25,53 @@
   font-size: 12px;
 }
 
+.poster-upload-button {
+  width: 100%;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.poster-upload-button:hover,
+.poster-upload-button:focus-visible {
+  color: #202522;
+  background:
+    radial-gradient(circle at 50% 44%, rgba(237, 28, 36, .1), transparent 24%),
+    linear-gradient(180deg, #fff 0 52%, #eef0ea 52%);
+}
+
+.poster-upload-button small {
+  color: #9ca29b;
+  font: 10px 'DM Mono', monospace;
+  text-transform: uppercase;
+}
+
+.poster-media-actions {
+  position: absolute;
+  top: 2.2cqw;
+  left: 2.2cqw;
+  z-index: 8;
+  display: flex;
+  gap: 1cqw;
+}
+
+.poster-media-actions button {
+  border: .15cqw solid rgba(255, 255, 255, .76);
+  border-radius: 999px;
+  background: rgba(32, 37, 34, .72);
+  color: #fff;
+  padding: .82cqw 1.35cqw .9cqw;
+  font: 700 1.62cqw var(--font-ui);
+  line-height: 1;
+  box-shadow: 0 .4cqw 1.2cqw rgba(0, 0, 0, .18);
+  backdrop-filter: blur(8px);
+}
+
+.poster-media-actions button:hover,
+.poster-media-actions button:focus-visible {
+  background: var(--brand-red);
+}
+
 .facebook-flyer .image-frame {
   position: absolute;
   inset: 0;
