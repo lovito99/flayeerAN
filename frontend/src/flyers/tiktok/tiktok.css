@@ -72,9 +72,60 @@
   font-size: 12px;
 }
 
+.tiktok-flyer .video-brand-ribbon {
+  position: absolute;
+  top: 2.4cqw;
+  left: 2.4cqw;
+  right: 24.2cqw;
+  z-index: 4;
+  min-height: 7.2cqw;
+  display: grid;
+  grid-template-columns: 6.8cqw minmax(0, auto) auto;
+  align-items: center;
+  gap: 1cqw;
+  padding: .75cqw 1.2cqw;
+  border: .16cqw solid rgba(255, 255, 255, .82);
+  border-radius: 999px;
+  background: rgba(237, 0, 0, .92);
+  color: #fff;
+  box-shadow: 0 .34cqw .9cqw rgba(0, 0, 0, .18);
+  text-transform: uppercase;
+}
+
+.tiktok-flyer .video-brand-ribbon img {
+  width: 6.8cqw;
+  height: 4.2cqw;
+  object-fit: contain;
+}
+
+.tiktok-flyer .video-brand-ribbon span {
+  min-width: 0;
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 3.05cqw;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.tiktok-flyer .video-brand-ribbon strong {
+  min-width: 0;
+  padding: .3cqw .75cqw .36cqw;
+  border-radius: 999px;
+  background: #fff;
+  color: #ed0000;
+  font-family: var(--font-condensed);
+  font-size: 1.42cqw;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .tiktok-flyer .video-topbar {
   position: absolute;
-  top: 1.8cqw;
+  top: 11.2cqw;
   right: 2cqw;
   left: auto;
   z-index: 4;

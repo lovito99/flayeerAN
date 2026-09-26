@@ -100,23 +100,6 @@ export async function deleteProjectAsset(projectId: string, assetId: string) {
   });
 }
 
-export async function downloadAsset(url: string, onProgress?: (progress: number) => void) {
-  try {
-    const response = await axios.get<Blob>(url, {
-      responseType: 'blob',
-      onDownloadProgress: event => {
-        const percent = progressPercent(event.loaded, event.total);
-        if (percent !== null) onProgress?.(percent);
-      }
-    });
-
-    onProgress?.(100);
-    return response.data;
-  } catch (error) {
-    throw apiError(error, 'No se pudo descargar el archivo');
-  }
-}
-
 export function assetUrl(path: string) {
   return `${API_URL}${path}`;
 }

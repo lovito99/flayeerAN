@@ -53,6 +53,12 @@ export function TiktokFlyer(props: Props) {
         </div>
       )}
 
+      <div className="video-brand-ribbon">
+        <img src={CASCO_ICON} alt="" />
+        <span>Ahora Nación</span>
+        {props.district && <strong>{props.district}</strong>}
+      </div>
+
       <div className="video-topbar">
         <div className="header-mark">
           <img src={CASCO_ICON} alt="Logo Ahora Nación" />

@@ -2,8 +2,9 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, PointerEvent } from 'react';
 import { ArrowLeft, CheckCircle2, Clapperboard, Download, FileText, ImagePlus, LayoutTemplate, Megaphone, Palette, Share2, Sparkles, Upload, WandSparkles, X } from 'lucide-react';
 import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from 'react-icons/fa6';
-import { assetUrl, deleteProjectAsset, downloadAsset, saveProject as saveProjectRequest, uploadProjectAsset } from '@/api';
+import { assetUrl, deleteProjectAsset, saveProject as saveProjectRequest, uploadProjectAsset } from '@/api';
 import { CASCO_ICON, STYLE_OPTIONS, TEMPLATES } from '@/config';
+import { exportTiktokVideo } from '@/exportTiktokVideo';
 import { FacebookFlyer } from '@/flyers/facebook/FacebookFlyer';
 import { TiktokFlyer } from '@/flyers/tiktok/TiktokFlyer';
 import { GovernmentPlan } from '@/pages/GovernmentPlan';
@@ -363,11 +364,24 @@ function App() {
     setError('');
 
     try {
-      const blob = await downloadAsset(asset.url, setDownloadProgress);
+      const exported = await exportTiktokVideo({
+        videoUrl: asset.url,
+        logoUrl: CASCO_ICON,
+        title,
+        honorific,
+        role,
+        subtitle,
+        tagline,
+        district,
+        accent,
+        position,
+        onProgress: setDownloadProgress
+      });
+      const blob = exported.blob;
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = asset.filename || `${title.trim().replace(/[^a-zA-Z0-9_-]+/g, '-').slice(0, 70) || 'video'}-tiktok.mp4`;
+      link.download = `${title.trim().replace(/[^a-zA-Z0-9_-]+/g, '-').slice(0, 70) || 'video'}-tiktok.${exported.extension}`;
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -583,6 +597,19 @@ function App() {
                 title={title}
               />
             )}
+            <div className="quick-style-row" aria-label="Estilos disponibles">
+              {STYLE_OPTIONS.filter(style => !style.facebookOnly || format === 'facebook').map(style => (
+                <button
+                  key={style.value}
+                  type="button"
+                  aria-pressed={mode === style.value}
+                  onClick={() => setMode(style.value)}
+                >
+                  <span className={`quick-style-dot quick-style-${style.value}`} aria-hidden="true" />
+                  {style.label}
+                </button>
+              ))}
+            </div>
           </section>
 
           <aside className={`sidebar right-panel ${mobileModal === 'content' ? 'mobile-modal-open' : ''}`}>
