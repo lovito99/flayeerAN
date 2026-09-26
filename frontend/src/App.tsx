@@ -448,7 +448,7 @@ function App() {
                 </span>
               </span>
             </button>
-            <button type="button" onClick={openPlan}>
+            <button className="welcome-plan-button" type="button" onClick={openPlan}>
               <FileText size={22} />
               <span><strong>Plan de gobierno</strong><small>Ver propuestas por ejes</small></span>
             </button>
@@ -492,10 +492,10 @@ function App() {
         </div>
         <div className="top-actions">
           <button className="save-button back-home" type="button" onClick={goHome}><ArrowLeft size={15} />Inicio</button>
-          <span className="saved" role="status"><span className="status-dot" />{saving ? 'Guardando...' : notice}</span>
+          <span className="saved" role="status"><span className="status-dot" />{downloadProgress !== null ? `Exportando video ${downloadProgress}%` : saving ? 'Guardando...' : notice}</span>
           <button className="save-button" disabled={saving || exporting} onClick={saveProject}>Guardar</button>
-          {format === 'facebook' && <button className="publish" disabled={saving || exporting || !asset} onClick={exportFlyer}><Download size={16} />{exporting ? 'Generando PNG...' : 'Descargar PNG'}</button>}
-          {format === 'tiktok' && <button className="publish" disabled={saving || exporting || asset?.kind !== 'video'} onClick={downloadVideo}><Download size={16} />{downloadProgress !== null ? `Descargando ${downloadProgress}%` : 'Descargar video'}</button>}
+          {format === 'facebook' && <button className="publish" disabled={saving || exporting || !asset} onClick={exportFlyer}><Download size={16} /><span>{exporting ? 'Generando PNG' : 'Descargar PNG'}</span></button>}
+          {format === 'tiktok' && <button className="publish" disabled={saving || exporting || asset?.kind !== 'video'} onClick={downloadVideo}><Download size={16} /><span>{downloadProgress !== null ? 'Exportando' : 'Descargar video'}</span></button>}
         </div>
       </header>
 

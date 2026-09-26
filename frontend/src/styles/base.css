@@ -69,12 +69,19 @@ button:focus-visible, [role="button"]:focus-visible, input:focus-visible, textar
 }
 
 .publish {
+  min-width: 148px;
+  justify-content: center;
   display: flex;
   align-items: center;
   gap: 8px;
   border-color: #292e2a;
   background: #292e2a;
   color: #fff;
+}
+
+.publish span {
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .alert {

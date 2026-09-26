@@ -378,6 +378,8 @@
 }
 
 .welcome-actions button {
+  position: relative;
+  overflow: hidden;
   min-height: 104px;
   display: flex;
   align-items: center;
@@ -408,11 +410,78 @@
 }
 
 .welcome-actions button > svg {
+  position: relative;
+  z-index: 1;
   width: 42px;
   height: 42px;
   padding: 10px;
   border-radius: 50%;
   background: color-mix(in srgb, var(--danger-red) 8%, white);
+}
+
+.welcome-actions button > span {
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-plan-button {
+  border-color: color-mix(in srgb, var(--danger-red) 42%, var(--line)) !important;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--danger-red) 5%, white), #fff 72%) !important;
+  box-shadow: 0 10px 26px rgba(237, 28, 36, .1);
+  animation: plan-button-lift 2.9s ease-in-out infinite;
+}
+
+.welcome-plan-button::after {
+  content: '';
+  position: absolute;
+  inset: -30% auto -30% -45%;
+  width: 38%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .9), transparent);
+  transform: skewX(-18deg);
+  animation: plan-button-sheen 3.4s ease-in-out infinite;
+}
+
+.welcome-plan-button > svg {
+  background: var(--danger-red) !important;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(237, 28, 36, .22);
+}
+
+.welcome-plan-button strong {
+  color: var(--danger-red);
+}
+
+@keyframes plan-button-lift {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 0 10px 26px rgba(237, 28, 36, .1);
+  }
+  50% {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 34px rgba(237, 28, 36, .16);
+  }
+}
+
+@keyframes plan-button-sheen {
+  0%, 42% {
+    left: -45%;
+    opacity: 0;
+  }
+  55% {
+    opacity: .85;
+  }
+  82%, 100% {
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-plan-button,
+  .welcome-plan-button::after {
+    animation: none;
+  }
 }
 
 .welcome-actions strong,

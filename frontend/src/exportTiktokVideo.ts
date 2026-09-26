@@ -19,7 +19,7 @@ type ExportedVideo = {
 
 const WIDTH = 1080;
 const HEIGHT = 1920;
-const FPS = 30;
+const FPS = 24;
 
 function supportedMimeType() {
   const types = [
@@ -109,7 +109,52 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, width: n
   ctx.closePath();
 }
 
-function drawOverlay(ctx: CanvasRenderingContext2D, logo: HTMLImageElement, params: ExportTiktokVideoParams) {
+function drawContainedImage(ctx: CanvasRenderingContext2D, image: HTMLImageElement, x: number, y: number, width: number, height: number) {
+  const ratio = Math.min(width / image.naturalWidth, height / image.naturalHeight);
+  const drawWidth = image.naturalWidth * ratio;
+  const drawHeight = image.naturalHeight * ratio;
+  const drawX = x + (width - drawWidth) / 2;
+  const drawY = y + (height - drawHeight) / 2;
+
+  ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+}
+
+function drawEndCard(ctx: CanvasRenderingContext2D, logo: HTMLImageElement, params: ExportTiktokVideoParams, progress: number) {
+  const eased = Math.min(1, Math.max(0, progress));
+  const scale = .92 + eased * .08;
+  const alpha = eased;
+  const cardWidth = 820;
+  const cardHeight = 360;
+  const x = (WIDTH - cardWidth) / 2;
+  const y = (HEIGHT - cardHeight) / 2;
+  const district = params.district.trim().toUpperCase();
+  const brandText = `AHORA NACIÓN${district ? ` ${district}` : ''}`;
+  const visibleChars = Math.max(1, Math.round(brandText.length * eased));
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = `rgba(0,0,0,${0.38 * alpha})`;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.translate(WIDTH / 2, HEIGHT / 2);
+  ctx.scale(scale, scale);
+  ctx.translate(-WIDTH / 2, -HEIGHT / 2);
+
+  roundRect(ctx, x, y, cardWidth, cardHeight, 34);
+  ctx.fillStyle = 'rgba(237,0,0,.94)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.86)';
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  drawContainedImage(ctx, logo, WIDTH / 2 - 132, y + 44, 264, 126);
+  ctx.fillStyle = '#fff';
+  drawCenteredText(ctx, brandText.slice(0, visibleChars), WIDTH / 2, y + 232, cardWidth - 90, 64, '400 {size}px Anton, Arial Black, sans-serif');
+  ctx.fillStyle = '#fff';
+  drawCenteredText(ctx, params.tagline, WIDTH / 2, y + 296, cardWidth - 100, 54, '700 {size}px Dancing Script, cursive');
+  ctx.restore();
+}
+
+function drawOverlay(ctx: CanvasRenderingContext2D, logo: HTMLImageElement, params: ExportTiktokVideoParams, currentTime: number, duration: number) {
   const name = splitName(params.title);
   const accent = params.accent || '#ed1c24';
 
@@ -129,27 +174,8 @@ function drawOverlay(ctx: CanvasRenderingContext2D, logo: HTMLImageElement, para
   ctx.lineWidth = 7;
   ctx.strokeRect(22, 22, WIDTH - 44, HEIGHT - 44);
 
-  roundRect(ctx, 54, 54, 700, 88, 44);
-  ctx.fillStyle = 'rgba(237,0,0,.94)';
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,.82)';
-  ctx.lineWidth = 4;
-  ctx.stroke();
-  ctx.drawImage(logo, 78, 72, 86, 52);
-  ctx.fillStyle = '#fff';
-  ctx.font = '400 48px Anton, Arial Black, sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText('AHORA NACIÓN', 184, 112);
-  if (params.district) {
-    roundRect(ctx, 520, 74, 206, 46, 23);
-    ctx.fillStyle = '#fff';
-    ctx.fill();
-    ctx.fillStyle = '#ed0000';
-    drawCenteredText(ctx, params.district.toUpperCase(), 623, 107, 176, 30, '900 {size}px Roboto Condensed, Arial, sans-serif');
-  }
-
   const badgeX = WIDTH - 270;
-  const badgeY = 168;
+  const badgeY = 42;
   const badgeW = 220;
   const badgeH = 236;
   roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 22);
@@ -158,7 +184,7 @@ function drawOverlay(ctx: CanvasRenderingContext2D, logo: HTMLImageElement, para
   ctx.strokeStyle = '#fff';
   ctx.lineWidth = 5;
   ctx.stroke();
-  ctx.drawImage(logo, badgeX + 24, badgeY + 18, badgeW - 48, 92);
+  drawContainedImage(ctx, logo, badgeX + 22, badgeY + 16, badgeW - 44, 94);
   ctx.fillStyle = '#fff';
   ctx.font = '400 40px Anton, Arial Black, sans-serif';
   ctx.textAlign = 'center';
@@ -204,6 +230,12 @@ function drawOverlay(ctx: CanvasRenderingContext2D, logo: HTMLImageElement, para
   ctx.fillRect(22, HEIGHT - 146, WIDTH - 44, 124);
   ctx.fillStyle = '#fff';
   drawCenteredText(ctx, params.tagline, WIDTH / 2, HEIGHT - 66, WIDTH - 140, 66, '700 {size}px Dancing Script, cursive');
+
+  const endCardSeconds = 3;
+  const endProgress = (currentTime - Math.max(0, duration - endCardSeconds)) / endCardSeconds;
+  if (endProgress > 0) {
+    drawEndCard(ctx, logo, params, endProgress);
+  }
 }
 
 export async function exportTiktokVideo(params: ExportTiktokVideoParams): Promise<ExportedVideo> {
@@ -241,7 +273,10 @@ export async function exportTiktokVideo(params: ExportTiktokVideoParams): Promis
   }
 
   const mimeType = supportedMimeType();
-  const recorder = new MediaRecorder(canvasStream, mimeType ? { mimeType } : undefined);
+  const recorder = new MediaRecorder(canvasStream, {
+    ...(mimeType ? { mimeType } : {}),
+    videoBitsPerSecond: 4_500_000
+  });
   const chunks: BlobPart[] = [];
   const finished = new Promise<Blob>((resolve, reject) => {
     recorder.ondataavailable = event => {
@@ -260,7 +295,7 @@ export async function exportTiktokVideo(params: ExportTiktokVideoParams): Promis
       context.drawImage(video, rect.x, rect.y, rect.width, rect.height);
     }
 
-    drawOverlay(context, logo, params);
+    drawOverlay(context, logo, params, video.currentTime, duration);
     params.onProgress?.(Math.min(99, Math.round((video.currentTime / duration) * 100)));
 
     if (!video.ended && video.currentTime < duration && recorder.state === 'recording') {
