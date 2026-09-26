@@ -74,14 +74,14 @@ export function FacebookFlyer(props: Props) {
           />
         </div>
       ) : (
-        <div className="poster-placeholder"><ImagePlus size={32} /><span>Anade una imagen para Facebook</span></div>
+        <div className="poster-placeholder"><ImagePlus size={32} /><span>Añade una imagen para Facebook</span></div>
       )}
 
       <div className="header-badge">
-        <img className="header-helmet" src={CASCO_ICON} alt="Casco Ahora Nacion" />
+        <img className="header-helmet" src={CASCO_ICON} alt="Casco Ahora Nación" />
         <strong>
           <span>Ahora</span>
-          <span>Nacion</span>
+          <span>Nación</span>
         </strong>
         {props.district && <em>{props.district}</em>}
       </div>

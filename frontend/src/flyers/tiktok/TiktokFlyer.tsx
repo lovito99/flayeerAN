@@ -36,17 +36,17 @@ export function TiktokFlyer(props: Props) {
         {props.asset?.kind === 'video' ? (
           <video src={props.asset.url} onError={props.onVideoError} autoPlay muted loop playsInline preload="metadata" />
         ) : (
-          <div className="poster-placeholder"><ImagePlus size={32} /><span>Anade un video para TikTok</span></div>
+          <div className="poster-placeholder"><ImagePlus size={32} /><span>Añade un video para TikTok</span></div>
         )}
       </div>
 
       <div className="video-topbar">
         <div className="header-mark">
-          <img src={CASCO_ICON} alt="Logo Ahora Nacion" />
+          <img src={CASCO_ICON} alt="Logo Ahora Nación" />
           <span className="mark-x" aria-hidden="true" />
           <img className="mark-hand" src={handVoteIcon} alt="" />
         </div>
-        <span>Ahora<span>Nacion</span></span>
+        <span>Ahora<span>Nación</span></span>
         {props.district && <strong>{props.district}</strong>}
       </div>
 

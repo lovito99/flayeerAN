@@ -1,6 +1,6 @@
-# Creador de Flyers - Ahora Nacion
+# Creador de Flyers - Ahora Nación
 
-Editor web para crear flyers verticales de campana, con frontend React/Vite y backend Express/Prisma.
+Editor web para crear flyers verticales de campaña, con frontend React/Vite y backend Express/Prisma.
 
 ## Deploy Ubuntu 22.x
 
@@ -97,7 +97,7 @@ Contenido para `backend/.env`:
 ```env
 PORT=4000
 APP_BASE_URL="https://api.ahoranacion.online"
-FRONTEND_BASE_URL="https://ahoranacion.online"
+FRONTEND_BASE_URL="https://ahoranacion.online,https://www.ahoranacion.online"
 
 DATABASE_URL="postgresql://flayer:flayer@localhost:5433/flayer?schema=public"
 
@@ -260,12 +260,14 @@ Valida:
 
 ```bash
 curl https://api.ahoranacion.online/api/health
+curl -I https://ahoranacion.online/plan-gobierno
 ```
 
 Abre:
 
 - `https://ahoranacion.online`
 - `https://www.ahoranacion.online`
+- `https://ahoranacion.online/plan-gobierno`
 - `https://api.ahoranacion.online/api/health`
 
 ## 10. Actualizar una instalacion existente

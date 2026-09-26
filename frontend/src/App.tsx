@@ -19,6 +19,13 @@ const planPath = `${basePath}/plan-gobierno`;
 const cleanPath = () => window.location.pathname.replace(/\/$/, '') || '/';
 const isPlanRoute = () => cleanPath() === planPath;
 
+function setPageMeta(title: string, description: string) {
+  document.title = title;
+
+  const metaDescription = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+  if (metaDescription) metaDescription.content = description;
+}
+
 function App() {
   const [started, setStarted] = useState(false);
   const [showPlan, setShowPlan] = useState(isPlanRoute);
@@ -83,6 +90,21 @@ function App() {
     window.addEventListener('popstate', syncRoute);
     return () => window.removeEventListener('popstate', syncRoute);
   }, []);
+
+  useEffect(() => {
+    if (showPlan) {
+      setPageMeta(
+        'Plan de Gobierno 2027-2030 | Ahora Nación Quiquijana',
+        'Consulta el plan de gobierno de Ahora Nación para el distrito de Quiquijana, con propuestas por dimensiones, datos poblacionales y capturas del PDF.'
+      );
+      return;
+    }
+
+    setPageMeta(
+      'Creador de Flyers | Ahora Nación Quiquijana',
+      'Crea flyers y videos de campaña de Ahora Nación Quiquijana para Facebook, WhatsApp, TikTok y Reels.'
+    );
+  }, [showPlan]);
 
   const markDirty = () => setNotice('Cambios sin guardar');
   const setMode = (value: Mode) => {
@@ -273,19 +295,19 @@ function App() {
       <main className="welcome-shell">
         <section className="welcome-card" aria-labelledby="welcome-title">
           <div className="welcome-brand">
-            <img src={CASCO_ICON} alt="Ahora Nacion" />
+            <img src={CASCO_ICON} alt="Ahora Nación" />
             <span>
-              <strong>Ahora Nacion</strong>
+              <strong>Ahora Nación</strong>
               <small>Quiquijana</small>
             </span>
           </div>
 
           <div className="welcome-copy">
-            <p className="eyebrow">Editor de campana</p>
+            <p className="eyebrow">Editor de campaña</p>
             <h1 id="welcome-title">Elige que vas a crear</h1>
             <p>
-              Prepara materiales listos para simpatizantes y equipos de apoyo. Usa imagenes para Facebook y WhatsApp,
-              o videos para Reels y TikTok; cada pieza mantiene la misma linea grafica para difundir la campana con orden.
+              Prepara materiales listos para simpatizantes y equipos de apoyo. Usa imágenes para Facebook y WhatsApp,
+              o videos para Reels y TikTok; cada pieza mantiene la misma línea gráfica para difundir la campaña con orden.
             </p>
           </div>
 
@@ -320,7 +342,7 @@ function App() {
 
           <div className="welcome-note">
             <strong>Antes de empezar</strong>
-            <span>Elige imagen, video o plan. El editor mantiene el estilo de campana listo para publicar.</span>
+            <span>Elige imagen, video o plan. El editor mantiene el estilo de campaña listo para publicar.</span>
           </div>
 
           <div className="welcome-support">
@@ -329,7 +351,7 @@ function App() {
               <div className="welcome-benefits" aria-label="Beneficios del editor">
                 <span><Megaphone size={16} /> Mensaje claro</span>
                 <span><Share2 size={16} /> Listo para compartir</span>
-                <span><CheckCircle2 size={16} /> Linea grafica uniforme</span>
+                <span><CheckCircle2 size={16} /> Línea gráfica uniforme</span>
               </div>
             </div>
             <div>
@@ -351,8 +373,8 @@ function App() {
     <main className="shell" onChange={markDirty}>
       <header className="topbar">
         <div className="brand">
-          <img className="brand-logo" src={CASCO_ICON} alt="Casco de Ahora Nacion" />
-          <span className="brand-name">Ahora Nacion<span className="brand-subtitle">Creador de Flyers</span></span>
+          <img className="brand-logo" src={CASCO_ICON} alt="Casco de Ahora Nación" />
+          <span className="brand-name">Ahora Nación<span className="brand-subtitle">Creador de Flyers</span></span>
         </div>
         <div className="top-actions">
           <button className="save-button back-home" type="button" onClick={goHome}><ArrowLeft size={15} />Inicio</button>
@@ -461,18 +483,18 @@ function App() {
           <aside className={`sidebar right-panel ${mobileModal === 'content' ? 'mobile-modal-open' : ''}`}>
             <button className="mobile-modal-close" type="button" aria-label="Cerrar edición de contenido" onClick={() => setMobileModal(null)}><X size={18} /></button>
             <div className="eyebrow">02 / contenido</div>
-            <div className="panel-title"><h2>Tu composicion</h2><span className="count">{format === 'tiktok' ? 'TikTok' : 'Facebook'}</span></div>
+            <div className="panel-title"><h2>Tu composición</h2><span className="count">{format === 'tiktok' ? 'TikTok' : 'Facebook'}</span></div>
             <div className="input-group"><label>Titular</label><input maxLength={70} value={title} onChange={event => setTitle(event.target.value)} /></div>
             <div className="input-group"><label>Tratamiento</label><input maxLength={16} value={honorific} onChange={event => setHonorific(event.target.value)} /></div>
             <div className="input-group"><label>Cargo</label><input maxLength={45} value={role} onChange={event => setRole(event.target.value)} /></div>
-            <div className="input-group"><label>Descripcion</label><textarea maxLength={80} value={subtitle} onChange={event => setSubtitle(event.target.value)} rows={2} /></div>
+            <div className="input-group"><label>Descripción</label><textarea maxLength={80} value={subtitle} onChange={event => setSubtitle(event.target.value)} rows={2} /></div>
             <div className="input-group"><label>Lema</label><input maxLength={80} value={tagline} onChange={event => setTagline(event.target.value)} /></div>
             <div className="input-group"><label>Distrito</label><input maxLength={45} value={district} onChange={event => setDistrict(event.target.value)} /></div>
             <div className="asset-drop" role="button" tabIndex={0} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fileRef.current?.click(); } }} onClick={() => fileRef.current?.click()}>
               <input ref={fileRef} type="file" hidden accept={template.accept} onChange={event => event.target.files?.[0] && uploadAsset(event.target.files[0])} />
               <div className="upload-icon">{saving ? <Sparkles size={20} /> : <Upload size={20} />}</div>
               <strong>{saving ? 'Subiendo...' : format === 'facebook' ? 'Sube tu imagen' : 'Sube tu video'}</strong>
-              <span>{template.files} - maximo 100 MB</span>
+              <span>{template.files} - máximo 100 MB</span>
             </div>
             {asset && <div className="input-group media-settings"><p className="asset-name">{asset.filename}</p>{format === 'facebook' ? <>
               <p className="crop-hint">Arrastra la imagen para encuadrar.</p>
@@ -486,7 +508,7 @@ function App() {
           </aside>
         </fieldset>
       </section>
-      <footer className="footer"><span><span className="live-dot" />Lienzo activo</span><span>Hecho para publicar rapido <span className="footer-mark">*</span></span></footer>
+      <footer className="footer"><span><span className="live-dot" />Lienzo activo</span><span>Hecho para publicar rápido <span className="footer-mark">*</span></span></footer>
     </main>
   );
 }

@@ -121,10 +121,15 @@ function parsePlanPage(text: string) {
   return blocks;
 }
 
-function PlanPageContent({ text }: { text: string }) {
+function PlanPageContent({ text, hasFigure }: { text: string; hasFigure: boolean }) {
+  const blocks = parsePlanPage(text).filter(block => {
+    if (!hasFigure) return true;
+    return block.type !== 'caption' && block.type !== 'table';
+  });
+
   return (
     <div className="plan-page-body">
-      {parsePlanPage(text).map((block, index) => {
+      {blocks.map((block, index) => {
         if (block.type === 'table') {
           return (
             <div className="plan-table-frame" key={`${block.type}-${index}`}>
@@ -305,7 +310,7 @@ export function GovernmentPlan({ onBack, onCreateVideo }: GovernmentPlanProps) {
                   <figcaption>{figureByPage.get(page.page)?.description}</figcaption>
                 </figure>
               )}
-              <PlanPageContent text={page.text} />
+              <PlanPageContent text={page.text} hasFigure={figureByPage.has(page.page)} />
             </article>
           ))}
         </div>
